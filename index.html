@@ -294,17 +294,14 @@
     const CARDS_TO_SHOW = 9;
     const CARDS_TO_SELECT = 3;
 
-    // Здесь будут храниться ID всех 78 карт (0-77)
-    // После получения ваших файлов — заменим на реальные названия
     const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
-
-    // Эмодзи для карт (временно, пока нет ваших изображений)
     const CARD_EMOJIS = ['🌙', '⭐', '✨', '🔮', '🌟', '💫', '🪐', '☄', '🌠'];
 
-    let selectedGrid = []; // 9 случайных карт для сетки
-    let selectedCards = []; // ID выбранных пользователем карт
-    let selectedIndices = []; // Позиции в сетке (0-8)
+    let selectedGrid = [];
+    let selectedCards = [];
+    let selectedIndices = [];
     let isLocked = false;
+    let isGridReady = false; // Добавлен флаг для исключения ошибок
 
     // === ФУНКЦИИ ===
 
@@ -344,15 +341,7 @@
             // Лицо карты
             const front = document.createElement('div');
             front.className = 'card-front';
-
-            // Временно: эмодзи вместо картинок
             front.textContent = CARD_EMOJIS[index];
-
-            // Если у вас есть реальные изображения, раскомментируйте:
-            // const img = document.createElement('img');
-            // img.src = https://yoursite.com/cards/${cardId}.jpg;
-            // img.alt = Card ${cardId};
-            // front.appendChild(img);
 
             const number = document.createElement('span');
             number.className = 'card-number';
@@ -371,20 +360,16 @@
 
     // Обработка клика по карте
     function handleCardClick(container, index, cardId) {
-    if (isLocked) return;
+    if (isLocked || !isGridReady) return; // Проверка готовности сетки
 
-    // 🚨 ИСПРАВЛЕНИЕ 1: Всегда проверяем наличие карты по индексу
     const indexInSelectedIndices = selectedIndices.indexOf(index);
     const isSelected = indexInSelectedIndices !== -1;
 
     if (isSelected) {
         // Отменить выбор
         container.classList.remove('flipped', 'selected');
-
-        // 🚨 ИСПРАВЛЕНИЕ: Удаляем элемент по его найденному индексу
         selectedIndices.splice(indexInSelectedIndices, 1);
 
-        // Удаляем соответствующий ID карты из selectedCards
         const cardIdIndex = selectedCards.indexOf(cardId);
         if (cardIdIndex !== -1) {
              selectedCards.splice(cardIdIndex, 1);
@@ -405,9 +390,6 @@
 
     // Если выбрали 3 карты — завершаем
     if (selectedIndices.length === CARDS_TO_SELECT) {
-        // 🚨 ИСПРАВЛЕНИЕ 2: УДАЛЯЕМ setTimeout
-        // Мы вызываем finishSelection СРАЗУ, но отправляем данные
-        // только по клику на MainButton (см. ниже).
         finishSelection();
     }
     }
@@ -431,7 +413,12 @@
 function finishSelection() {
     isLocked = true;
 
-    // Блокируем все карты
+    // 🚨 ИЗМЕНЕНИЕ 1: Скрываем Главную кнопку (если она вдруг появилась)
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.MainButton.hide();
+    }
+
+    // Блокируем все невыбранные карты
     document.querySelectorAll('.card-container').forEach(card => {
         if (!selectedIndices.includes(parseInt(card.dataset.index))) {
             card.classList.add('locked');
@@ -441,14 +428,8 @@ function finishSelection() {
     document.getElementById('message').textContent = '✨ Ваш выбор сделан! ✨';
     document.getElementById('message').classList.add('success');
 
-    // Показываем финальный экран
+    // Показываем финальный экран, который через 2 секунды отправит данные
     setTimeout(showFinalScreen, 1000);
-
-    // 🚨 ДОБАВЛЕНО: Показываем главную кнопку Telegram
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.MainButton.setText('Отправить 3 карты');
-        window.Telegram.WebApp.MainButton.show();
-    }
 }
 
 // Показать финальный экран
@@ -458,33 +439,28 @@ function showFinalScreen() {
 
     const finalScreen = document.getElementById('finalScreen');
     const display = document.getElementById('selectedCardsDisplay');
-    display.innerHTML = ''; // 🚨 ДОБАВЛЕНО: Очищаем, чтобы избежать дублирования
+    display.innerHTML = '';
 
-    // 🚨 ИСПРАВЛЕНИЕ: Используем selectedIndices для определения, какие эмодзи показать
+    // Показываем выбранные карты на финальном экране
     selectedIndices.forEach((index, idx) => {
         const miniCard = document.createElement('div');
         miniCard.className = 'mini-card';
-        // Используем индекс (0-8) для выбора эмодзи из массива CARD_EMOJIS
         miniCard.textContent = CARD_EMOJIS[index];
         display.appendChild(miniCard);
     });
 
     finalScreen.classList.add('show');
 
-    // 🚨 УДАЛЕНО: Автоматическая отправка данных через 2 секунды. Теперь по клику на MainButton.
-    // setTimeout(sendToBot, 2000);
+    // 🚨 ИЗМЕНЕНИЕ 2: Автоматическая отправка данных через 2 секунды
+    // Даем пользователю увидеть выбранные карты, затем отправляем и закрываем.
+    setTimeout(sendToBot, 2000);
 }
 
     // Отправка данных в Telegram бота
 function sendToBot() {
-    // 🚨 ФИКС: Скрываем кнопку после клика, чтобы избежать повторной отправки
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.MainButton.hide();
-    }
+    // Главная кнопка уже скрыта в finishSelection, здесь ее не трогаем.
 
-    // Отправка данных
     const result = {
-        // 🚨 ФИКС: Используем понятные ключи для Python-кода
         cards: selectedCards, // ID карт (0-77)
         selected_indices: selectedIndices, // Позиции в сетке (0-8)
         grid: selectedGrid,
@@ -506,17 +482,6 @@ function sendToBot() {
     }
 }
 
-// ... (в секции ИНИЦИАЛИЗАЦИЯ)
-
-// Настройка Telegram WebApp
-if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.enableClosingConfirmation();
-
-    // 🚨 ДОБАВЛЕНО: Привязываем MainButton к функции отправки
-    tg.MainButton.onClick(sendToBot);
-}
 
     // Создание искр
     function createSparkles() {
@@ -546,6 +511,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 
         document.getElementById('grid').classList.add('show');
         updateMessage();
+        isGridReady = true; // Активация флага готовности
     }, 2000);
 
     // Искры
@@ -557,6 +523,7 @@ if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.expand(); // Развернуть на весь экран
         tg.enableClosingConfirmation(); // Подтверждение при закрытии
+        // 🚨 ИЗМЕНЕНИЕ 3: Удалена привязка MainButton, он больше не нужен
     }
 </script>
 </body>
