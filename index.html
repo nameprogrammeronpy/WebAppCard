@@ -371,32 +371,45 @@
 
     // Обработка клика по карте
     function handleCardClick(container, index, cardId) {
-        if (isLocked) return;
+    if (isLocked) return;
 
-        const alreadySelected = selectedIndices.includes(index);
+    // 🚨 ИСПРАВЛЕНИЕ 1: Всегда проверяем наличие карты по индексу
+    const indexInSelectedIndices = selectedIndices.indexOf(index);
+    const isSelected = indexInSelectedIndices !== -1;
 
-        if (alreadySelected) {
-            // Отменить выбор
-            container.classList.remove('flipped', 'selected');
-            selectedIndices = selectedIndices.filter(i => i !== index);
-            selectedCards = selectedCards.filter(c => c !== cardId);
-        } else if (selectedCards.length < CARDS_TO_SELECT) {
-            // Выбрать карту
-            container.classList.add('flipped');
-            setTimeout(() => {
-                container.classList.add('selected');
-            }, 300);
+    if (isSelected) {
+        // Отменить выбор
+        container.classList.remove('flipped', 'selected');
 
-            selectedIndices.push(index);
-            selectedCards.push(cardId);
+        // 🚨 ИСПРАВЛЕНИЕ: Удаляем элемент по его найденному индексу
+        selectedIndices.splice(indexInSelectedIndices, 1);
+
+        // Удаляем соответствующий ID карты из selectedCards
+        const cardIdIndex = selectedCards.indexOf(cardId);
+        if (cardIdIndex !== -1) {
+             selectedCards.splice(cardIdIndex, 1);
         }
 
-        updateMessage();
+    } else if (selectedIndices.length < CARDS_TO_SELECT) {
+        // Выбрать карту
+        container.classList.add('flipped');
+        setTimeout(() => {
+            container.classList.add('selected');
+        }, 300);
 
-        // Если выбрали 3 карты — завершаем
-        if (selectedCards.length === CARDS_TO_SELECT) {
-            setTimeout(finishSelection, 800);
-        }
+        selectedIndices.push(index);
+        selectedCards.push(cardId);
+    }
+
+    updateMessage();
+
+    // Если выбрали 3 карты — завершаем
+    if (selectedIndices.length === CARDS_TO_SELECT) {
+        // 🚨 ИСПРАВЛЕНИЕ 2: УДАЛЯЕМ setTimeout
+        // Мы вызываем finishSelection СРАЗУ, но отправляем данные
+        // только по клику на MainButton (см. ниже).
+        finishSelection();
+    }
     }
 
     // Обновление сообщения
