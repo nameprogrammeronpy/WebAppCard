@@ -266,7 +266,6 @@
 <div class="container">
     <h1 class="title" id="title">✨ Перетасовываю карты... ✨</h1>
 
-    <!-- Анимация перетасовки -->
     <div class="shuffle-area" id="shuffleArea">
         <div class="shuffle-card">🌙</div>
         <div class="shuffle-card">🌙</div>
@@ -275,10 +274,8 @@
         <div class="shuffle-card">🌙</div>
     </div>
 
-    <!-- Сетка выбора карт -->
     <div class="grid" id="grid"></div>
 
-    <!-- Финальный экран -->
     <div class="final-screen" id="finalScreen">
         <h2>✨ Карты выбраны! ✨</h2>
         <div class="selected-cards-display" id="selectedCardsDisplay"></div>
@@ -302,7 +299,7 @@
     let selectedIndices = [];
     let isLocked = false;
     let isGridReady = false;
-    let autoCloseTimer; // Переменная для таймера
+    let autoCloseTimer;
     const AUTO_CLOSE_DELAY_MS = 30000; // 30 секунд
 
     // === ФУНКЦИИ ===
@@ -364,9 +361,9 @@
     function handleCardClick(container, index, cardId) {
         if (isLocked || !isGridReady) return; // Проверка готовности сетки
 
-        // 🚀 ИСПРАВЛЕННАЯ ЛОГИКА ТАЙМЕРА: Выносим код очистки из основного тела.
-        // Если это первый клик, отменяем автозакрытие
-        if (autoCloseTimer && selectedIndices.length === 0) {
+        // 🚀 ИСПРАВЛЕНИЕ АВТОВЫБОРА: Если таймер установлен, отменяем его при первом же клике
+        // Убрано условие "selectedIndices.length === 0" для большей надежности
+        if (autoCloseTimer) {
             clearTimeout(autoCloseTimer);
             autoCloseTimer = null; // Сбрасываем таймер
             console.log('Таймер автозакрытия отменен.');
@@ -508,7 +505,9 @@
 
     // Запуск через 2 секунды после анимации перетасовки
     setTimeout(() => {
+        // 🚀 ИСПРАВЛЕНИЕ ГЛЮКА: Более надежное скрытие элемента
         document.getElementById('shuffleArea').style.display = 'none';
+
         document.getElementById('title').textContent = '🎴 Выбери 3 карты 🎴';
 
         selectRandomCards();
@@ -518,7 +517,7 @@
         updateMessage();
         isGridReady = true; // Активация флага готовности
 
-        // ⭐️ ЗАПУСК ТАЙМЕРА АВТОЗАКРЫТИЯ (30 секунд)
+        // ЗАПУСК ТАЙМЕРА АВТОЗАКРЫТИЯ (30 секунд)
         autoCloseTimer = setTimeout(() => {
             // Если пользователь не выбрал карты, просто закрываем
             if (selectedIndices.length === 0) {
