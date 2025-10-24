@@ -428,71 +428,95 @@
     }
 
     // Завершение выбора
-    function finishSelection() {
-        isLocked = true;
+function finishSelection() {
+    isLocked = true;
 
-        // Блокируем все карты
-        document.querySelectorAll('.card-container').forEach(card => {
-            if (!selectedIndices.includes(parseInt(card.dataset.index))) {
-                card.classList.add('locked');
-            }
-        });
+    // Блокируем все карты
+    document.querySelectorAll('.card-container').forEach(card => {
+        if (!selectedIndices.includes(parseInt(card.dataset.index))) {
+            card.classList.add('locked');
+        }
+    });
 
-        document.getElementById('message').textContent = '✨ Готово! ✨';
-        document.getElementById('message').classList.add('success');
+    document.getElementById('message').textContent = '✨ Ваш выбор сделан! ✨';
+    document.getElementById('message').classList.add('success');
 
-        // Показываем финальный экран
-        setTimeout(showFinalScreen, 1000);
+    // Показываем финальный экран
+    setTimeout(showFinalScreen, 1000);
+
+    // 🚨 ДОБАВЛЕНО: Показываем главную кнопку Telegram
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.MainButton.setText('Отправить 3 карты');
+        window.Telegram.WebApp.MainButton.show();
     }
+}
 
-    // Показать финальный экран
-    function showFinalScreen() {
-        document.getElementById('grid').style.display = 'none';
-        document.getElementById('message').style.display = 'none';
+// Показать финальный экран
+function showFinalScreen() {
+    document.getElementById('grid').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
 
-        const finalScreen = document.getElementById('finalScreen');
-        const display = document.getElementById('selectedCardsDisplay');
+    const finalScreen = document.getElementById('finalScreen');
+    const display = document.getElementById('selectedCardsDisplay');
+    display.innerHTML = ''; // 🚨 ДОБАВЛЕНО: Очищаем, чтобы избежать дублирования
 
-        // Показываем выбранные карты
-        selectedCards.forEach((cardId, idx) => {
-            const miniCard = document.createElement('div');
-            miniCard.className = 'mini-card';
-            miniCard.textContent = CARD_EMOJIS[selectedIndices[idx]];
-            display.appendChild(miniCard);
-        });
+    // 🚨 ИСПРАВЛЕНИЕ: Используем selectedIndices для определения, какие эмодзи показать
+    selectedIndices.forEach((index, idx) => {
+        const miniCard = document.createElement('div');
+        miniCard.className = 'mini-card';
+        // Используем индекс (0-8) для выбора эмодзи из массива CARD_EMOJIS
+        miniCard.textContent = CARD_EMOJIS[index];
+        display.appendChild(miniCard);
+    });
 
-        finalScreen.classList.add('show');
+    finalScreen.classList.add('show');
 
-        // Отправляем данные в бота и закрываем через 2 секунды
-        setTimeout(sendToBot, 2000);
-    }
+    // 🚨 УДАЛЕНО: Автоматическая отправка данных через 2 секунды. Теперь по клику на MainButton.
+    // setTimeout(sendToBot, 2000);
+}
 
     // Отправка данных в Telegram бота
-    function sendToBot() {
-        const result = {
-            selected_cards: selectedCards,
-            selected_indices: selectedIndices,
-            grid: selectedGrid,
-            timestamp: new Date().toISOString()
-        };
-
-        console.log('Отправка данных в бота:', result);
-
-        // Проверяем, запущено ли в Telegram WebApp
-        if (window.Telegram && window.Telegram.WebApp) {
-            // Отправляем данные боту
-            window.Telegram.WebApp.sendData(JSON.stringify(result));
-
-            // Закрываем WebApp
-            setTimeout(() => {
-                window.Telegram.WebApp.close();
-            }, 500);
-        } else {
-            // Для тестирования вне Telegram
-            alert('Выбранные карты: ' + selectedCards.join(', '));
-            console.log('Результат:', result);
-        }
+function sendToBot() {
+    // 🚨 ФИКС: Скрываем кнопку после клика, чтобы избежать повторной отправки
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.MainButton.hide();
     }
+
+    // Отправка данных
+    const result = {
+        // 🚨 ФИКС: Используем понятные ключи для Python-кода
+        cards: selectedCards, // ID карт (0-77)
+        selected_indices: selectedIndices, // Позиции в сетке (0-8)
+        grid: selectedGrid,
+        timestamp: new Date().toISOString()
+    };
+
+    console.log('Отправка данных в бота:', result);
+
+    // Проверяем, запущено ли в Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.sendData(JSON.stringify(result));
+
+        // Закрываем WebApp
+        setTimeout(() => {
+            window.Telegram.WebApp.close();
+        }, 500);
+    } else {
+        // ... (логика тестирования)
+    }
+}
+
+// ... (в секции ИНИЦИАЛИЗАЦИЯ)
+
+// Настройка Telegram WebApp
+if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.enableClosingConfirmation();
+
+    // 🚨 ДОБАВЛЕНО: Привязываем MainButton к функции отправки
+    tg.MainButton.onClick(sendToBot);
+}
 
     // Создание искр
     function createSparkles() {
