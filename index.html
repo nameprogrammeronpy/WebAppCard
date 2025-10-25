@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Выбор карт Таро</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -21,6 +22,7 @@
             font-family: 'Georgia', serif;
             overflow: hidden;
             padding: 10px;
+            touch-action: manipulation;
         }
 
         .container {
@@ -44,6 +46,13 @@
             height: 300px;
             width: 100%;
             margin-bottom: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .shuffle-area.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .shuffle-card {
@@ -93,11 +102,13 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             perspective: 1000px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
         }
 
         .grid.show {
             display: grid;
-            animation: fadeIn 0.5s ease-in;
+            opacity: 1;
         }
 
         /* Контейнер для 3D переворота */
@@ -108,6 +119,11 @@
             cursor: pointer;
             transform-style: preserve-3d;
             transition: transform 0.6s;
+            touch-action: manipulation;
+        }
+
+        .card-container.disabled {
+            pointer-events: none;
         }
 
         .card-container.flipped {
@@ -149,7 +165,7 @@
             transition: all 0.3s ease;
         }
 
-        .card-container:hover .card-back {
+        .card-container:not(.disabled):hover .card-back {
             box-shadow: 0 10px 30px rgba(230, 185, 128, 0.4);
             border-color: #e6b980;
         }
@@ -162,7 +178,6 @@
             position: relative;
         }
 
-        /* Если карта имеет реальное изображение */
         .card-front img {
             width: 100%;
             height: 100%;
@@ -170,7 +185,6 @@
             border-radius: 6px;
         }
 
-        /* Подсветка выбранных */
         .card-container.selected .card-front {
             box-shadow: 0 0 30px rgba(230, 185, 128, 0.8),
                         0 0 50px rgba(230, 185, 128, 0.5);
@@ -293,22 +307,19 @@
         const TOTAL_CARDS = 78;
         const CARDS_TO_SHOW = 9;
         const CARDS_TO_SELECT = 3;
+        const SHUFFLE_DURATION = 2500; // Увеличена длительность перетасовки
 
-        // Здесь будут храниться ID всех 78 карт (0-77)
-        // После получения ваших файлов — заменим на реальные названия
         const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
-
-        // Эмодзи для карт (временно, пока нет ваших изображений)
         const CARD_EMOJIS = ['🌙', '⭐', '✨', '🔮', '🌟', '💫', '🪐', '☄', '🌠'];
 
-        let selectedGrid = []; // 9 случайных карт для сетки
-        let selectedCards = []; // ID выбранных пользователем карт
-        let selectedIndices = []; // Позиции в сетке (0-8)
+        let selectedGrid = [];
+        let selectedCards = [];
+        let selectedIndices = [];
         let isLocked = false;
+        let cardsInteractionEnabled = false; // Новый флаг для контроля взаимодействия
 
         // === ФУНКЦИИ ===
 
-        // Перемешать массив (алгоритм Фишера-Йетса)
         function shuffleArray(array) {
             const shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -318,41 +329,29 @@
             return shuffled;
         }
 
-        // Выбрать 9 случайных карт из 78
         function selectRandomCards() {
             const shuffled = shuffleArray(ALL_CARDS);
             selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
             console.log('Выбранные карты для сетки:', selectedGrid);
         }
 
-        // Создать сетку карт
         function createGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
 
             selectedGrid.forEach((cardId, index) => {
                 const container = document.createElement('div');
-                container.className = 'card-container';
+                container.className = 'card-container disabled'; // Изначально disabled
                 container.dataset.index = index;
                 container.dataset.cardId = cardId;
 
-                // Рубашка
                 const back = document.createElement('div');
                 back.className = 'card-back';
                 back.textContent = '🌙';
 
-                // Лицо карты
                 const front = document.createElement('div');
                 front.className = 'card-front';
-
-                // Временно: эмодзи вместо картинок
                 front.textContent = CARD_EMOJIS[index];
-
-                // Если у вас есть реальные изображения, раскомментируйте:
-                // const img = document.createElement('img');
-                // img.src = https://yoursite.com/cards/${cardId}.jpg;
-                // img.alt = Card ${cardId};
-                // front.appendChild(img);
 
                 const number = document.createElement('span');
                 number.className = 'card-number';
@@ -362,26 +361,37 @@
                 container.appendChild(back);
                 container.appendChild(front);
 
-                // Клик по карте
-                container.addEventListener('click', () => handleCardClick(container, index, cardId));
+                // Обработчик клика с защитой от случайных срабатываний
+                container.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (cardsInteractionEnabled) {
+                        handleCardClick(container, index, cardId);
+                    }
+                });
+
+                // Предотвращаем touchstart события до готовности
+                container.addEventListener('touchstart', (e) => {
+                    if (!cardsInteractionEnabled) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
 
                 grid.appendChild(container);
             });
         }
 
-        // Обработка клика по карте
         function handleCardClick(container, index, cardId) {
-            if (isLocked) return;
+            if (isLocked || !cardsInteractionEnabled) return;
 
             const alreadySelected = selectedIndices.includes(index);
 
             if (alreadySelected) {
-                // Отменить выбор
                 container.classList.remove('flipped', 'selected');
                 selectedIndices = selectedIndices.filter(i => i !== index);
                 selectedCards = selectedCards.filter(c => c !== cardId);
             } else if (selectedCards.length < CARDS_TO_SELECT) {
-                // Выбрать карту
                 container.classList.add('flipped');
                 setTimeout(() => {
                     container.classList.add('selected');
@@ -393,13 +403,11 @@
 
             updateMessage();
 
-            // Если выбрали 3 карты — завершаем
             if (selectedCards.length === CARDS_TO_SELECT) {
                 setTimeout(finishSelection, 800);
             }
         }
 
-        // Обновление сообщения
         function updateMessage() {
             const message = document.getElementById('message');
             const remaining = CARDS_TO_SELECT - selectedCards.length;
@@ -407,31 +415,29 @@
             if (remaining === CARDS_TO_SELECT) {
                 message.textContent = 'Слушай сердцем... Выбери 3 карты';
             } else if (remaining > 0) {
-                message.textContent = Выбрано: ${selectedCards.length} из ${CARDS_TO_SELECT};
+                message.textContent = `Выбрано: ${selectedCards.length} из ${CARDS_TO_SELECT}`;
             } else {
                 message.textContent = '';
             }
         }
 
-        // Завершение выбора
         function finishSelection() {
             isLocked = true;
+            cardsInteractionEnabled = false;
 
-            // Блокируем все карты
             document.querySelectorAll('.card-container').forEach(card => {
                 if (!selectedIndices.includes(parseInt(card.dataset.index))) {
                     card.classList.add('locked');
                 }
+                card.classList.add('disabled');
             });
 
             document.getElementById('message').textContent = '✨ Готово! ✨';
             document.getElementById('message').classList.add('success');
 
-            // Показываем финальный экран
             setTimeout(showFinalScreen, 1000);
         }
 
-        // Показать финальный экран
         function showFinalScreen() {
             document.getElementById('grid').style.display = 'none';
             document.getElementById('message').style.display = 'none';
@@ -439,7 +445,6 @@
             const finalScreen = document.getElementById('finalScreen');
             const display = document.getElementById('selectedCardsDisplay');
 
-            // Показываем выбранные карты
             selectedCards.forEach((cardId, idx) => {
                 const miniCard = document.createElement('div');
                 miniCard.className = 'mini-card';
@@ -449,11 +454,9 @@
 
             finalScreen.classList.add('show');
 
-            // Отправляем данные в бота и закрываем через 2 секунды
             setTimeout(sendToBot, 2000);
         }
 
-        // Отправка данных в Telegram бота
         function sendToBot() {
             const result = {
                 selected_cards: selectedCards,
@@ -464,23 +467,18 @@
 
             console.log('Отправка данных в бота:', result);
 
-            // Проверяем, запущено ли в Telegram WebApp
             if (window.Telegram && window.Telegram.WebApp) {
-                // Отправляем данные боту
                 window.Telegram.WebApp.sendData(JSON.stringify(result));
 
-                // Закрываем WebApp
                 setTimeout(() => {
                     window.Telegram.WebApp.close();
                 }, 500);
             } else {
-                // Для тестирования вне Telegram
                 alert('Выбранные карты: ' + selectedCards.join(', '));
                 console.log('Результат:', result);
             }
         }
 
-        // Создание искр
         function createSparkles() {
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
@@ -496,29 +494,61 @@
             }
         }
 
+        function enableCardsInteraction() {
+            cardsInteractionEnabled = true;
+            document.querySelectorAll('.card-container').forEach(card => {
+                card.classList.remove('disabled');
+            });
+            console.log('Карты активированы для взаимодействия');
+        }
+
         // === ИНИЦИАЛИЗАЦИЯ ===
+        function init() {
+            console.log('Инициализация начата');
 
-        // Запуск через 2 секунды после анимации перетасовки
-        setTimeout(() => {
-            document.getElementById('shuffleArea').style.display = 'none';
-            document.getElementById('title').textContent = '🎴 Выбери 3 карты 🎴';
-
+            // Подготовка карт
             selectRandomCards();
             createGrid();
 
-            document.getElementById('grid').classList.add('show');
-            updateMessage();
-        }, 2000);
+            // Плавное скрытие перетасовки и показ сетки
+            setTimeout(() => {
+                const shuffleArea = document.getElementById('shuffleArea');
+                shuffleArea.classList.add('hidden');
 
-        // Искры
-        createSparkles();
-        setInterval(createSparkles, 3000);
+                setTimeout(() => {
+                    shuffleArea.style.display = 'none';
+                    document.getElementById('title').textContent = '🎴 Выбери 3 карты 🎴';
+
+                    const grid = document.getElementById('grid');
+                    grid.classList.add('show');
+                    updateMessage();
+
+                    // ВАЖНО: Включаем взаимодействие с задержкой после показа сетки
+                    setTimeout(() => {
+                        enableCardsInteraction();
+                    }, 800); // Задержка 800мс после показа сетки
+                }, 500);
+            }, SHUFFLE_DURATION);
+
+            createSparkles();
+            setInterval(createSparkles, 3000);
+        }
 
         // Настройка Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
-            tg.expand(); // Развернуть на весь экран
-            tg.enableClosingConfirmation(); // Подтверждение при закрытии
+            tg.expand();
+            tg.enableClosingConfirmation();
+            tg.ready(); // Сообщаем Telegram, что WebApp готов
+
+            console.log('Telegram WebApp инициализирован');
+        }
+
+        // Запуск после полной загрузки страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
         }
     </script>
 </body>
