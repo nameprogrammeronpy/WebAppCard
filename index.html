@@ -458,26 +458,38 @@
         }
 
         function sendToBot() {
-            const result = {
-                selected_cards: selectedCards,
-                selected_indices: selectedIndices,
-                grid: selectedGrid,
-                timestamp: new Date().toISOString()
-            };
+    // 🔥 КРИТИЧНО: selectedCards содержит ID карт (0-77)
+    // Нужно отправить ПОЗИЦИИ в сетке (1-9), а не ID карт!
+    const positionsForBot = selectedIndices.map(idx => idx + 1);
 
-            console.log('Отправка данных в бота:', result);
+    const result = {
+        cards: positionsForBot,           // ✅ ГЛАВНЫЙ ключ для бота
+        picks: positionsForBot,           // ✅ Запасной вариант
+        selected: positionsForBot,        // ✅ Ещё запасной
+        selected_cards: selectedCards,    // ID карт (0-77) - доп. инфо
+        selected_indices: selectedIndices, // Индексы 0-8
+        grid: selectedGrid,               // Вся сетка карт
+        timestamp: new Date().toISOString()
+    };
 
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify(result));
+    console.log('🎴 Отправка данных в бота:', result);
+    console.log('📍 Позиции для бота (1-9):', positionsForBot);
+    console.log('🃏 ID карт из колоды:', selectedCards);
 
-                setTimeout(() => {
-                    window.Telegram.WebApp.close();
-                }, 500);
-            } else {
-                alert('Выбранные карты: ' + selectedCards.join(', '));
-                console.log('Результат:', result);
-            }
-        }
+    if (window.Telegram && window.Telegram.WebApp) {
+        const jsonData = JSON.stringify(result);
+        console.log('📤 JSON для отправки:', jsonData);
+
+        window.Telegram.WebApp.sendData(jsonData);
+
+        setTimeout(() => {
+            window.Telegram.WebApp.close();
+        }, 500);
+    } else {
+        alert('Выбранные позиции: ' + positionsForBot.join(', '));
+        console.log('✅ Результат для отправки:', result);
+    }
+}
 
         function createSparkles() {
             for (let i = 0; i < 10; i++) {
