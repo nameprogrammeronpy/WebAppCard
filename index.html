@@ -456,25 +456,29 @@
 
             setTimeout(sendToBot, 2000);
         }
-
+        let dataSent = false;
         function sendToBot() {
-    // 🔥 КРИТИЧНО: selectedCards содержит ID карт (0-77)
-    // Нужно отправить ПОЗИЦИИ в сетке (1-9), а не ID карт!
+    // 🆕 ЗАЩИТА ОТ ДУБЛЕЙ
+    if (dataSent) {
+        console.log('⚠️ Данные уже отправлены, пропускаем');
+        return;
+    }
+    dataSent = true; // Отмечаем, что отправили
+
     const positionsForBot = selectedIndices.map(idx => idx + 1);
 
     const result = {
-        cards: positionsForBot,           // ✅ ГЛАВНЫЙ ключ для бота
-        picks: positionsForBot,           // ✅ Запасной вариант
-        selected: positionsForBot,        // ✅ Ещё запасной
-        selected_cards: selectedCards,    // ID карт (0-77) - доп. инфо
-        selected_indices: selectedIndices, // Индексы 0-8
-        grid: selectedGrid,               // Вся сетка карт
+        cards: positionsForBot,
+        picks: positionsForBot,
+        selected: positionsForBot,
+        selected_cards: selectedCards,
+        selected_indices: selectedIndices,
+        grid: selectedGrid,
         timestamp: new Date().toISOString()
     };
 
     console.log('🎴 Отправка данных в бота:', result);
     console.log('📍 Позиции для бота (1-9):', positionsForBot);
-    console.log('🃏 ID карт из колоды:', selectedCards);
 
     if (window.Telegram && window.Telegram.WebApp) {
         const jsonData = JSON.stringify(result);
@@ -482,9 +486,8 @@
 
         window.Telegram.WebApp.sendData(jsonData);
 
-        setTimeout(() => {
-            window.Telegram.WebApp.close();
-        }, 500);
+        // 🆕 ЗАКРЫВАЕМ СРАЗУ (без задержки)
+        window.Telegram.WebApp.close();
     } else {
         alert('Выбранные позиции: ' + positionsForBot.join(', '));
         console.log('✅ Результат для отправки:', result);
