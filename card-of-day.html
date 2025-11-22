@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Выбор карт Таро</title>
+    <title>Карта дня</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,11 +14,9 @@
         }
 
         body {
-            /* Используем загруженный фон */
-            background-image: url('./assets/background.png'), url('./assets/background.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: url('./assets/background.png') center/cover,
+                        url('./assets/background.jpg') center/cover,
+                        linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             background-attachment: fixed;
             display: flex;
             justify-content: center;
@@ -26,11 +24,10 @@
             min-height: 100vh;
             font-family: 'Georgia', serif;
             overflow: hidden;
-            padding: 10px;
+            padding: 20px;
             touch-action: manipulation;
         }
 
-        /* Затемнение для читаемости */
         body::before {
             content: '';
             position: fixed;
@@ -46,27 +43,36 @@
             text-align: center;
             position: relative;
             width: 100%;
-            max-width: 600px;  /* Увеличено с 500px */
-            padding: 0 15px;
+            max-width: 450px;
         }
 
         .title {
             color: #e6b980;
-            font-size: 22px;
-            margin-bottom: 30px;
+            font-size: 24px;
+            margin-bottom: 40px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 0.8),
                 0 0 30px rgba(0, 0, 0, 0.8),
                 2px 2px 4px rgba(0, 0, 0, 1);
-            animation: fadeIn 0.5s ease-in;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .subtitle {
+            color: #e6b980;
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            text-shadow:
+                0 0 10px rgba(230, 185, 128, 0.6),
+                2px 2px 4px rgba(0, 0, 0, 1);
         }
 
         /* === АНИМАЦИЯ ПЕРЕТАСОВКИ === */
         .shuffle-area {
             position: relative;
-            height: 300px;
+            height: 320px;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             opacity: 1;
             transition: opacity 0.5s ease-out;
         }
@@ -78,51 +84,43 @@
 
         .shuffle-card {
             position: absolute;
-            width: 100px;
-            height: 150px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            background: url('./assets/back.png') center/cover,
-                        url('./assets/back.jpg') center/cover,
-                        linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
+            width: 120px;
+            height: 180px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            background-image: url('./assets/back.jpg');
+            background-size: cover;
+            background-position: center;
             border: 2px solid #8b6f47;
         }
 
-        @keyframes shuffle1 {
-            0%, 100% { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            50% { left: 20%; top: 20%; transform: translate(-50%, -50%) rotate(-25deg); opacity: 0.8; }
-        }
-        @keyframes shuffle2 {
-            0%, 100% { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            50% { left: 80%; top: 30%; transform: translate(-50%, -50%) rotate(35deg); opacity: 0.8; }
-        }
-        @keyframes shuffle3 {
-            0%, 100% { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            50% { left: 30%; top: 70%; transform: translate(-50%, -50%) rotate(-40deg); opacity: 0.8; }
-        }
-        @keyframes shuffle4 {
-            0%, 100% { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            50% { left: 70%; top: 75%; transform: translate(-50%, -50%) rotate(28deg); opacity: 0.8; }
-        }
-        @keyframes shuffle5 {
-            0%, 100% { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
-            50% { left: 50%; top: 15%; transform: translate(-50%, -50%) rotate(-15deg); opacity: 0.8; }
+        @keyframes shuffleCircle {
+            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(80px) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(80px) rotate(-360deg); }
         }
 
-        .shuffle-card:nth-child(1) { animation: shuffle1 1.2s ease-in-out infinite; }
-        .shuffle-card:nth-child(2) { animation: shuffle2 1.2s ease-in-out infinite; animation-delay: 0.1s; }
-        .shuffle-card:nth-child(3) { animation: shuffle3 1.2s ease-in-out infinite; animation-delay: 0.2s; }
-        .shuffle-card:nth-child(4) { animation: shuffle4 1.2s ease-in-out infinite; animation-delay: 0.3s; }
-        .shuffle-card:nth-child(5) { animation: shuffle5 1.2s ease-in-out infinite; animation-delay: 0.4s; }
+        .shuffle-card {
+            left: 50%;
+            top: 50%;
+            animation: shuffleCircle 3s ease-in-out infinite;
+        }
+
+        .shuffle-card:nth-child(1) { animation-delay: 0s; }
+        .shuffle-card:nth-child(2) { animation-delay: 0.3s; }
+        .shuffle-card:nth-child(3) { animation-delay: 0.6s; }
+        .shuffle-card:nth-child(4) { animation-delay: 0.9s; }
+        .shuffle-card:nth-child(5) { animation-delay: 1.2s; }
 
         /* === СЕТКА 3×3 === */
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            perspective: 1000px;
+            gap: 12px;
+            perspective: 1200px;
             opacity: 0;
             transition: opacity 0.5s ease-in;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         .grid.show {
@@ -130,14 +128,13 @@
             opacity: 1;
         }
 
-        /* Контейнер для 3D переворота */
         .card-container {
             width: 100%;
             aspect-ratio: 2/3;
             position: relative;
             cursor: pointer;
             transform-style: preserve-3d;
-            transition: transform 0.6s;
+            transition: transform 0.7s;
             touch-action: manipulation;
         }
 
@@ -150,47 +147,49 @@
         }
 
         .card-container.selected {
-            animation: pulse 0.5s ease-in-out;
+            animation: pulseGlow 1s ease-in-out infinite;
         }
 
         .card-container.locked {
             pointer-events: none;
-            opacity: 0.6;
+            opacity: 0.5;
+            filter: grayscale(50%);
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1) rotateY(180deg); }
-            50% { transform: scale(1.05) rotateY(180deg); }
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: scale(1) rotateY(180deg);
+                filter: brightness(1);
+            }
+            50% {
+                transform: scale(1.08) rotateY(180deg);
+                filter: brightness(1.3);
+            }
         }
 
-        /* Рубашка и лицо карты */
         .card-back, .card-front {
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
             border: 2px solid #8b6f47;
         }
 
-        /* Рубашка (по умолчанию видна) */
         .card-back {
-            background: url('./assets/back.png') center/cover,
-                        url('./assets/back.jpg') center/cover,
-                        linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
+            background-image: url('./assets/back.jpg');
+            background-size: cover;
+            background-position: center;
             transition: all 0.3s ease;
         }
 
-        .card-container:not(.disabled):hover .card-back {
-            box-shadow: 0 10px 30px rgba(230, 185, 128, 0.6);
+        .card-container:not(.disabled):not(.selected):hover .card-back {
+            box-shadow: 0 12px 35px rgba(230, 185, 128, 0.6);
             border-color: #e6b980;
+            transform: scale(1.02);
         }
 
-        /* Лицо карты (изначально скрыто) */
         .card-front {
             background: #000;
             transform: rotateY(180deg);
@@ -202,35 +201,35 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 8px;
         }
 
         .card-container.selected .card-front {
             box-shadow:
-                0 0 30px rgba(230, 185, 128, 0.9),
-                0 0 50px rgba(230, 185, 128, 0.6);
-            border-color: #e6b980;
+                0 0 40px rgba(230, 185, 128, 1),
+                0 0 70px rgba(230, 185, 128, 0.7),
+                0 0 100px rgba(230, 185, 128, 0.4);
+            border-color: #ffd700;
+            border-width: 3px;
         }
 
         .card-number {
             position: absolute;
-            bottom: 5px;
-            right: 8px;
+            bottom: 8px;
+            right: 10px;
             color: #e6b980;
-            font-size: 12px;
-            opacity: 0.9;
+            font-size: 14px;
             font-weight: bold;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 2px 6px;
-            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
         }
 
-        /* Сообщение */
         .message {
             color: #e6b980;
-            font-size: 16px;
-            margin-top: 20px;
-            min-height: 25px;
+            font-size: 18px;
+            margin-top: 30px;
+            min-height: 30px;
             animation: fadeIn 0.5s ease-in;
             text-shadow:
                 0 0 10px rgba(230, 185, 128, 0.8),
@@ -238,11 +237,11 @@
         }
 
         .message.success {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             text-shadow:
-                0 0 15px rgba(230, 185, 128, 1),
-                0 0 30px rgba(230, 185, 128, 0.8);
+                0 0 20px rgba(230, 185, 128, 1),
+                0 0 40px rgba(230, 185, 128, 0.8);
         }
 
         @keyframes fadeIn {
@@ -250,28 +249,27 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Искры */
         .sparkle {
             position: absolute;
-            width: 4px;
-            height: 4px;
+            width: 5px;
+            height: 5px;
             background: #e6b980;
             border-radius: 50%;
             pointer-events: none;
-            animation: sparkleFloat 2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(230, 185, 128, 0.8);
+            animation: sparkleFloat 2.5s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(230, 185, 128, 1);
         }
 
         @keyframes sparkleFloat {
             0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
-            50% { opacity: 1; transform: translateY(-40px) scale(1); }
+            50% { opacity: 1; transform: translateY(-50px) scale(1.5); }
         }
 
         /* Финальный экран */
         .final-screen {
             display: none;
             text-align: center;
-            animation: fadeIn 0.8s ease-in;
+            animation: fadeIn 1s ease-in;
         }
 
         .final-screen.show {
@@ -280,32 +278,38 @@
 
         .final-screen h2 {
             color: #e6b980;
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 30px;
             text-shadow:
-                0 0 20px rgba(230, 185, 128, 1),
-                0 0 30px rgba(230, 185, 128, 0.6),
+                0 0 25px rgba(230, 185, 128, 1),
+                0 0 40px rgba(230, 185, 128, 0.7),
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        .selected-cards-display {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 30px 0;
+        .selected-card-display {
+            margin: 40px auto;
+            max-width: 250px;
         }
 
-        .mini-card {
-            width: 80px;
-            height: 120px;
-            border-radius: 8px;
-            border: 2px solid #e6b980;
-            box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
+        .big-card {
+            width: 100%;
+            aspect-ratio: 2/3;
+            border-radius: 12px;
+            border: 3px solid #e6b980;
+            box-shadow:
+                0 0 40px rgba(230, 185, 128, 0.8),
+                0 0 70px rgba(230, 185, 128, 0.5);
             overflow: hidden;
             background: #000;
+            animation: cardReveal 1s ease-out;
         }
 
-        .mini-card img {
+        @keyframes cardReveal {
+            0% { transform: scale(0.5) rotateY(-90deg); opacity: 0; }
+            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        }
+
+        .big-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -314,7 +318,8 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title" id="title">✨ Перетасовываю карты... ✨</h1>
+        <h1 class="title" id="title">🌟 Карта дня 🌟</h1>
+        <p class="subtitle" id="subtitle">Сосредоточься на своём вопросе...</p>
 
         <!-- Анимация перетасовки -->
         <div class="shuffle-area" id="shuffleArea">
@@ -330,22 +335,22 @@
 
         <!-- Финальный экран -->
         <div class="final-screen" id="finalScreen">
-            <h2>✨ Карты выбраны! ✨</h2>
-            <div class="selected-cards-display" id="selectedCardsDisplay"></div>
-            <p class="message">Отправляю результат тёте Зине...</p>
+            <h2>✨ Твоя карта дня ✨</h2>
+            <div class="selected-card-display">
+                <div class="big-card" id="bigCard"></div>
+            </div>
+            <p class="message">Отправляю тёте Зине...</p>
         </div>
 
         <div class="message" id="message"></div>
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ ===
         const TOTAL_CARDS = 78;
         const CARDS_TO_SHOW = 9;
-        const CARDS_TO_SELECT = 3;
-        const SHUFFLE_DURATION = 2500;
+        const CARDS_TO_SELECT = 1; // Только 1 карта!
+        const SHUFFLE_DURATION = 3000;
 
-        // Названия файлов карт (78 карт в правильном порядке)
         const CARD_IMAGES = [
             // Старшие арканы (0-21)
             '0_fool.jpg', '1_magician.jpg', '2_high_priestess.jpg', '3_empress.jpg',
@@ -383,12 +388,10 @@
         const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
 
         let selectedGrid = [];
-        let selectedCards = [];
-        let selectedIndices = [];
+        let selectedCard = null;
+        let selectedIndex = null;
         let isLocked = false;
         let cardsInteractionEnabled = false;
-
-        // === ФУНКЦИИ ===
 
         function shuffleArray(array) {
             const shuffled = [...array];
@@ -402,7 +405,7 @@
         function selectRandomCards() {
             const shuffled = shuffleArray(ALL_CARDS);
             selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
-            console.log('Выбранные карты для сетки:', selectedGrid);
+            console.log('Карты для выбора:', selectedGrid);
         }
 
         function getCardImagePath(cardId) {
@@ -430,9 +433,8 @@
                 img.alt = `Карта ${cardId + 1}`;
                 img.loading = 'lazy';
 
-                // Обработка ошибки загрузки
                 img.onerror = function() {
-                    console.error(`Не удалось загрузить карту: ${cardId}`);
+                    console.error(`Ошибка загрузки: ${cardId}`);
                     this.style.display = 'none';
                     front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
                     front.textContent = '🔮';
@@ -471,37 +473,42 @@
         function handleCardClick(container, index, cardId) {
             if (isLocked || !cardsInteractionEnabled) return;
 
-            const alreadySelected = selectedIndices.includes(index);
+            // Снимаем выбор с предыдущей карты
+            if (selectedIndex !== null && selectedIndex !== index) {
+                const prevCard = document.querySelector(`[data-index="${selectedIndex}"]`);
+                if (prevCard) {
+                    prevCard.classList.remove('flipped', 'selected');
+                }
+            }
+
+            const alreadySelected = selectedIndex === index;
 
             if (alreadySelected) {
                 container.classList.remove('flipped', 'selected');
-                selectedIndices = selectedIndices.filter(i => i !== index);
-                selectedCards = selectedCards.filter(c => c !== cardId);
-            } else if (selectedCards.length < CARDS_TO_SELECT) {
+                selectedIndex = null;
+                selectedCard = null;
+            } else {
                 container.classList.add('flipped');
                 setTimeout(() => {
                     container.classList.add('selected');
                 }, 300);
 
-                selectedIndices.push(index);
-                selectedCards.push(cardId);
+                selectedIndex = index;
+                selectedCard = cardId;
             }
 
             updateMessage();
 
-            if (selectedCards.length === CARDS_TO_SELECT) {
-                setTimeout(finishSelection, 800);
+            if (selectedCard !== null) {
+                setTimeout(finishSelection, 1500);
             }
         }
 
         function updateMessage() {
             const message = document.getElementById('message');
-            const remaining = CARDS_TO_SELECT - selectedCards.length;
 
-            if (remaining === CARDS_TO_SELECT) {
-                message.textContent = 'Слушай сердцем... Выбери 3 карты';
-            } else if (remaining > 0) {
-                message.textContent = `Выбрано: ${selectedCards.length} из ${CARDS_TO_SELECT}`;
+            if (selectedCard === null) {
+                message.textContent = 'Выбери одну карту, которая тебя притягивает';
             } else {
                 message.textContent = '';
             }
@@ -512,40 +519,34 @@
             cardsInteractionEnabled = false;
 
             document.querySelectorAll('.card-container').forEach(card => {
-                if (!selectedIndices.includes(parseInt(card.dataset.index))) {
+                if (parseInt(card.dataset.index) !== selectedIndex) {
                     card.classList.add('locked');
                 }
                 card.classList.add('disabled');
             });
 
-            document.getElementById('message').textContent = '✨ Готово! ✨';
+            document.getElementById('message').textContent = '✨ Отлично! ✨';
             document.getElementById('message').classList.add('success');
 
-            setTimeout(showFinalScreen, 1000);
+            setTimeout(showFinalScreen, 1200);
         }
 
         function showFinalScreen() {
             document.getElementById('grid').style.display = 'none';
             document.getElementById('message').style.display = 'none';
+            document.getElementById('subtitle').style.display = 'none';
 
             const finalScreen = document.getElementById('finalScreen');
-            const display = document.getElementById('selectedCardsDisplay');
+            const bigCard = document.getElementById('bigCard');
 
-            selectedCards.forEach((cardId, idx) => {
-                const miniCard = document.createElement('div');
-                miniCard.className = 'mini-card';
+            const img = document.createElement('img');
+            img.src = getCardImagePath(selectedCard);
+            img.alt = 'Карта дня';
 
-                const img = document.createElement('img');
-                img.src = getCardImagePath(cardId);
-                img.alt = `Выбранная карта ${idx + 1}`;
-
-                miniCard.appendChild(img);
-                display.appendChild(miniCard);
-            });
-
+            bigCard.appendChild(img);
             finalScreen.classList.add('show');
 
-            setTimeout(sendToBot, 2000);
+            setTimeout(sendToBot, 2500);
         }
 
         let dataSent = false;
@@ -556,35 +557,30 @@
             }
             dataSent = true;
 
-            const positionsForBot = selectedIndices.map(idx => idx + 1);
+            const positionForBot = selectedIndex + 1;
 
             const result = {
-                cards: positionsForBot,
-                picks: positionsForBot,
-                selected: positionsForBot,
-                selected_cards: selectedCards,
-                selected_indices: selectedIndices,
+                card: positionForBot,
+                selected_card: selectedCard,
+                selected_index: selectedIndex,
                 grid: selectedGrid,
+                type: 'card_of_day',
                 timestamp: new Date().toISOString()
             };
 
-            console.log('🎴 Отправка данных в бота:', result);
-            console.log('📍 Позиции для бота (1-9):', positionsForBot);
+            console.log('🎴 Отправка карты дня:', result);
 
             if (window.Telegram && window.Telegram.WebApp) {
-                const jsonData = JSON.stringify(result);
-                console.log('📤 JSON для отправки:', jsonData);
-
-                window.Telegram.WebApp.sendData(jsonData);
+                window.Telegram.WebApp.sendData(JSON.stringify(result));
                 window.Telegram.WebApp.close();
             } else {
-                alert('Выбранные позиции: ' + positionsForBot.join(', '));
-                console.log('✅ Результат для отправки:', result);
+                alert('Выбрана карта: ' + positionForBot);
+                console.log('✅ Результат:', result);
             }
         }
 
         function createSparkles() {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 12; i++) {
                 setTimeout(() => {
                     const sparkle = document.createElement('div');
                     sparkle.className = 'sparkle';
@@ -593,7 +589,7 @@
                     sparkle.style.animationDelay = Math.random() * 2 + 's';
                     document.body.appendChild(sparkle);
 
-                    setTimeout(() => sparkle.remove(), 2000);
+                    setTimeout(() => sparkle.remove(), 2500);
                 }, i * 100);
             }
         }
@@ -606,9 +602,8 @@
             console.log('✅ Карты активированы');
         }
 
-        // === ИНИЦИАЛИЗАЦИЯ ===
         function init() {
-            console.log('🎴 Инициализация WebApp');
+            console.log('🌟 Инициализация "Карта дня"');
 
             selectRandomCards();
             createGrid();
@@ -619,7 +614,7 @@
 
                 setTimeout(() => {
                     shuffleArea.style.display = 'none';
-                    document.getElementById('title').textContent = '🎴 Выбери 3 карты 🎴';
+                    document.getElementById('title').textContent = '🎴 Выбери свою карту дня 🎴';
 
                     const grid = document.getElementById('grid');
                     grid.classList.add('show');
@@ -632,10 +627,9 @@
             }, SHUFFLE_DURATION);
 
             createSparkles();
-            setInterval(createSparkles, 3000);
+            setInterval(createSparkles, 4000);
         }
 
-        // Настройка Telegram WebApp
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
             tg.expand();
@@ -644,7 +638,6 @@
             console.log('✅ Telegram WebApp готов');
         }
 
-        // Запуск
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
