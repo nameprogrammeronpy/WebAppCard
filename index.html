@@ -52,7 +52,7 @@
 
         .title {
             color: #e6b980;
-            font-size: 22px;
+            font-size: 26px;  /* Увеличено с 22px */
             margin-bottom: 30px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 0.8),
@@ -119,10 +119,11 @@
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 15px;  /* Увеличено с 10px */
             perspective: 1000px;
             opacity: 0;
             transition: opacity 0.5s ease-in;
+            max-width: 100%;
         }
 
         .grid.show {
@@ -228,7 +229,7 @@
         /* Сообщение */
         .message {
             color: #e6b980;
-            font-size: 16px;
+            font-size: 18px;  /* Увеличено с 16px */
             margin-top: 20px;
             min-height: 25px;
             animation: fadeIn 0.5s ease-in;
@@ -345,39 +346,39 @@
         const CARDS_TO_SELECT = 3;
         const SHUFFLE_DURATION = 2500;
 
-        // Названия файлов карт (78 карт в правильном порядке)
+        // Названия файлов карт (78 карт в правильном порядке, PNG для качества)
         const CARD_IMAGES = [
             // Старшие арканы (0-21)
-            '0_fool.jpg', '1_magician.jpg', '2_high_priestess.jpg', '3_empress.jpg',
-            '4_emperor.jpg', '5_hierophant.jpg', '6_lovers.jpg', '7_chariot.jpg',
-            '8_strength.jpg', '9_hermit.jpg', '10_wheel_of_fortune.jpg', '11_justice.jpg',
-            '12_hanged_man.jpg', '13_death.jpg', '14_temperance.jpg', '15_devil.jpg',
-            '16_tower.jpg', '17_star.jpg', '18_moon.jpg', '19_sun.jpg',
-            '20_judgement.jpg', '21_world.jpg',
+            '0_fool.png', '1_magician.png', '2_high_priestess.png', '3_empress.png',
+            '4_emperor.png', '5_hierophant.png', '6_lovers.png', '7_chariot.png',
+            '8_strength.png', '9_hermit.png', '10_wheel_of_fortune.png', '11_justice.png',
+            '12_hanged_man.png', '13_death.png', '14_temperance.png', '15_devil.png',
+            '16_tower.png', '17_star.png', '18_moon.png', '19_sun.png',
+            '20_judgement.png', '21_world.png',
 
             // МЕЧИ (22-35): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'swords_ace.jpg', 'swords_king.jpg', 'swords_queen.jpg', 'swords_knight.jpg',
-            'swords_page.jpg', 'swords_2.jpg', 'swords_3.jpg', 'swords_4.jpg',
-            'swords_5.jpg', 'swords_6.jpg', 'swords_7.jpg', 'swords_8.jpg',
-            'swords_9.jpg', 'swords_10.jpg',
+            'swords_ace.png', 'swords_king.png', 'swords_queen.png', 'swords_knight.png',
+            'swords_page.png', 'swords_2.png', 'swords_3.png', 'swords_4.png',
+            'swords_5.png', 'swords_6.png', 'swords_7.png', 'swords_8.png',
+            'swords_9.png', 'swords_10.png',
 
             // КУБКИ (36-49): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'cups_ace.jpg', 'cups_king.jpg', 'cups_queen.jpg', 'cups_knight.jpg',
-            'cups_page.jpg', 'cups_2.jpg', 'cups_3.jpg', 'cups_4.jpg',
-            'cups_5.jpg', 'cups_6.jpg', 'cups_7.jpg', 'cups_8.jpg',
-            'cups_9.jpg', 'cups_10.jpg',
+            'cups_ace.png', 'cups_king.png', 'cups_queen.png', 'cups_knight.png',
+            'cups_page.png', 'cups_2.png', 'cups_3.png', 'cups_4.png',
+            'cups_5.png', 'cups_6.png', 'cups_7.png', 'cups_8.png',
+            'cups_9.png', 'cups_10.png',
 
             // ЖЕЗЛЫ (50-63): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'wands_ace.jpg', 'wands_king.jpg', 'wands_queen.jpg', 'wands_knight.jpg',
-            'wands_page.jpg', 'wands_2.jpg', 'wands_3.jpg', 'wands_4.jpg',
-            'wands_5.jpg', 'wands_6.jpg', 'wands_7.jpg', 'wands_8.jpg',
-            'wands_9.jpg', 'wands_10.jpg',
+            'wands_ace.png', 'wands_king.png', 'wands_queen.png', 'wands_knight.png',
+            'wands_page.png', 'wands_2.png', 'wands_3.png', 'wands_4.png',
+            'wands_5.png', 'wands_6.png', 'wands_7.png', 'wands_8.png',
+            'wands_9.png', 'wands_10.png',
 
             // ПЕНТАКЛИ (64-77): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'pentacles_ace.jpg', 'pentacles_king.jpg', 'pentacles_queen.jpg', 'pentacles_knight.jpg',
-            'pentacles_page.jpg', 'pentacles_2.jpg', 'pentacles_3.jpg', 'pentacles_4.jpg',
-            'pentacles_5.jpg', 'pentacles_6.jpg', 'pentacles_7.jpg', 'pentacles_8.jpg',
-            'pentacles_9.jpg', 'pentacles_10.jpg'
+            'pentacles_ace.png', 'pentacles_king.png', 'pentacles_queen.png', 'pentacles_knight.png',
+            'pentacles_page.png', 'pentacles_2.png', 'pentacles_3.png', 'pentacles_4.png',
+            'pentacles_5.png', 'pentacles_6.png', 'pentacles_7.png', 'pentacles_8.png',
+            'pentacles_9.png', 'pentacles_10.png'
         ];
 
         const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
