@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Карта дня</title>
+
+    <!-- Preload критичных ресурсов -->
+    <link rel="preload" as="image" href="./assets/background.webp">
+    <link rel="preload" as="image" href="./assets/back.webp">
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,7 +19,8 @@
         }
 
         body {
-            background: url('./assets/background.png') center/cover,
+            /* WebP с фоллбэком на JPG */
+            background: url('./assets/background.webp') center/cover,
                         url('./assets/background.jpg') center/cover,
                         linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             background-attachment: fixed;
@@ -88,10 +94,12 @@
             height: 180px;
             border-radius: 10px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            background: url('./assets/back.png') center/cover,
+            background: url('./assets/back.webp') center/cover,
                         url('./assets/back.jpg') center/cover,
                         linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
             border: 2px solid #8b6f47;
+            left: 50%;
+            top: 50%;
         }
 
         @keyframes shuffleCircle {
@@ -99,17 +107,27 @@
             100% { transform: translate(-50%, -50%) rotate(360deg) translateX(80px) rotate(-360deg); }
         }
 
-        .shuffle-card {
-            left: 50%;
-            top: 50%;
-            animation: shuffleCircle 3s ease-in-out infinite;
+        /* Карты начинают с разных позиций */
+        .shuffle-card:nth-child(1) {
+            animation: shuffleCircle 2.4s linear infinite;
+            animation-delay: 0s;
         }
-
-        .shuffle-card:nth-child(1) { animation-delay: 0s; }
-        .shuffle-card:nth-child(2) { animation-delay: 0.3s; }
-        .shuffle-card:nth-child(3) { animation-delay: 0.6s; }
-        .shuffle-card:nth-child(4) { animation-delay: 0.9s; }
-        .shuffle-card:nth-child(5) { animation-delay: 1.2s; }
+        .shuffle-card:nth-child(2) {
+            animation: shuffleCircle 2.4s linear infinite;
+            animation-delay: -0.48s;
+        }
+        .shuffle-card:nth-child(3) {
+            animation: shuffleCircle 2.4s linear infinite;
+            animation-delay: -0.96s;
+        }
+        .shuffle-card:nth-child(4) {
+            animation: shuffleCircle 2.4s linear infinite;
+            animation-delay: -1.44s;
+        }
+        .shuffle-card:nth-child(5) {
+            animation: shuffleCircle 2.4s linear infinite;
+            animation-delay: -1.92s;
+        }
 
         /* === СЕТКА 3×3 === */
         .grid {
@@ -178,7 +196,7 @@
         }
 
         .card-back {
-            background: url('./assets/back.png') center/cover,
+            background: url('./assets/back.webp') center/cover,
                         url('./assets/back.jpg') center/cover,
                         linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
             transition: all 0.3s ease;
@@ -348,41 +366,41 @@
     <script>
         const TOTAL_CARDS = 78;
         const CARDS_TO_SHOW = 9;
-        const CARDS_TO_SELECT = 1; // Только 1 карта!
+        const CARDS_TO_SELECT = 1;
         const SHUFFLE_DURATION = 3000;
 
         const CARD_IMAGES = [
             // Старшие арканы (0-21)
-            '0_fool.png', '1_magician.png', '2_high_priestess.png', '3_empress.png',
-            '4_emperor.png', '5_hierophant.png', '6_lovers.png', '7_chariot.png',
-            '8_strength.png', '9_hermit.png', '10_wheel_of_fortune.png', '11_justice.png',
-            '12_hanged_man.png', '13_death.png', '14_temperance.png', '15_devil.png',
-            '16_tower.png', '17_star.png', '18_moon.png', '19_sun.png',
-            '20_judgement.png', '21_world.png',
+            '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
+            '4_emperor.webp', '5_hierophant.webp', '6_lovers.webp', '7_chariot.webp',
+            '8_strength.webp', '9_hermit.webp', '10_wheel_of_fortune.webp', '11_justice.webp',
+            '12_hanged_man.webp', '13_death.webp', '14_temperance.webp', '15_devil.webp',
+            '16_tower.webp', '17_star.webp', '18_moon.webp', '19_sun.webp',
+            '20_judgement.webp', '21_world.webp',
 
-            // МЕЧИ (22-35): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'swords_ace.png', 'swords_king.png', 'swords_queen.png', 'swords_knight.png',
-            'swords_page.png', 'swords_2.png', 'swords_3.png', 'swords_4.png',
-            'swords_5.png', 'swords_6.png', 'swords_7.png', 'swords_8.png',
-            'swords_9.png', 'swords_10.png',
+            // МЕЧИ (22-35)
+            'swords_ace.webp', 'swords_king.webp', 'swords_queen.webp', 'swords_knight.webp',
+            'swords_page.webp', 'swords_2.webp', 'swords_3.webp', 'swords_4.webp',
+            'swords_5.webp', 'swords_6.webp', 'swords_7.webp', 'swords_8.webp',
+            'swords_9.webp', 'swords_10.webp',
 
-            // КУБКИ (36-49): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'cups_ace.png', 'cups_king.png', 'cups_queen.png', 'cups_knight.png',
-            'cups_page.png', 'cups_2.png', 'cups_3.png', 'cups_4.png',
-            'cups_5.png', 'cups_6.png', 'cups_7.png', 'cups_8.png',
-            'cups_9.png', 'cups_10.png',
+            // КУБКИ (36-49)
+            'cups_ace.webp', 'cups_king.webp', 'cups_queen.webp', 'cups_knight.webp',
+            'cups_page.webp', 'cups_2.webp', 'cups_3.webp', 'cups_4.webp',
+            'cups_5.webp', 'cups_6.webp', 'cups_7.webp', 'cups_8.webp',
+            'cups_9.webp', 'cups_10.webp',
 
-            // ЖЕЗЛЫ (50-63): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'wands_ace.png', 'wands_king.png', 'wands_queen.png', 'wands_knight.png',
-            'wands_page.png', 'wands_2.png', 'wands_3.png', 'wands_4.png',
-            'wands_5.png', 'wands_6.png', 'wands_7.png', 'wands_8.png',
-            'wands_9.png', 'wands_10.png',
+            // ЖЕЗЛЫ (50-63)
+            'wands_ace.webp', 'wands_king.webp', 'wands_queen.webp', 'wands_knight.webp',
+            'wands_page.webp', 'wands_2.webp', 'wands_3.webp', 'wands_4.webp',
+            'wands_5.webp', 'wands_6.webp', 'wands_7.webp', 'wands_8.webp',
+            'wands_9.webp', 'wands_10.webp',
 
-            // ПЕНТАКЛИ (64-77): Туз, Король, Королева, Рыцарь, Паж, 2-10
-            'pentacles_ace.png', 'pentacles_king.png', 'pentacles_queen.png', 'pentacles_knight.png',
-            'pentacles_page.png', 'pentacles_2.png', 'pentacles_3.png', 'pentacles_4.png',
-            'pentacles_5.png', 'pentacles_6.png', 'pentacles_7.png', 'pentacles_8.png',
-            'pentacles_9.png', 'pentacles_10.png'
+            // ПЕНТАКЛИ (64-77)
+            'pentacles_ace.webp', 'pentacles_king.webp', 'pentacles_queen.webp', 'pentacles_knight.webp',
+            'pentacles_page.webp', 'pentacles_2.webp', 'pentacles_3.webp', 'pentacles_4.webp',
+            'pentacles_5.webp', 'pentacles_6.webp', 'pentacles_7.webp', 'pentacles_8.webp',
+            'pentacles_9.webp', 'pentacles_10.webp'
         ];
 
         const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
@@ -454,13 +472,13 @@
                 container.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (cardsInteractionEnabled) {
+                    if (cardsInteractionEnabled && !isLocked) {
                         handleCardClick(container, index, cardId);
                     }
                 });
 
                 container.addEventListener('touchstart', (e) => {
-                    if (!cardsInteractionEnabled) {
+                    if (!cardsInteractionEnabled || isLocked) {
                         e.preventDefault();
                         e.stopPropagation();
                     }
@@ -471,7 +489,11 @@
         }
 
         function handleCardClick(container, index, cardId) {
-            if (isLocked || !cardsInteractionEnabled) return;
+            // ИСПРАВЛЕНО: строгая проверка что карта не заблокирована
+            if (isLocked || !cardsInteractionEnabled) {
+                console.log('Клики отключены');
+                return;
+            }
 
             // Снимаем выбор с предыдущей карты
             if (selectedIndex !== null && selectedIndex !== index) {
@@ -500,6 +522,9 @@
             updateMessage();
 
             if (selectedCard !== null) {
+                // ИСПРАВЛЕНО: сразу блокируем все клики
+                isLocked = true;
+                cardsInteractionEnabled = false;
                 setTimeout(finishSelection, 1500);
             }
         }
@@ -515,9 +540,7 @@
         }
 
         function finishSelection() {
-            isLocked = true;
-            cardsInteractionEnabled = false;
-
+            // Блокируем все карты кроме выбранной
             document.querySelectorAll('.card-container').forEach(card => {
                 if (parseInt(card.dataset.index) !== selectedIndex) {
                     card.classList.add('locked');
