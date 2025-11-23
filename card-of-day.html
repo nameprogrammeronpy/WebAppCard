@@ -18,9 +18,10 @@
         }
 
         body {
-            background: url('./assets/background.webp') center/cover,
-                        url('./assets/background.jpg') center/cover,
-                        linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-image: url('./assets/background.webp'), url('./assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             background-attachment: fixed;
             display: flex;
             justify-content: center;
@@ -28,7 +29,7 @@
             min-height: 100vh;
             font-family: 'Georgia', serif;
             overflow-x: hidden;
-            padding: 20px;
+            padding: 10px;
             touch-action: manipulation;
         }
 
@@ -47,35 +48,35 @@
             text-align: center;
             position: relative;
             width: 100%;
-            max-width: 900px;
+            max-width: 600px;
+            padding: 0 15px;
         }
 
         .title {
             color: #e6b980;
-            font-size: 24px;
-            margin-bottom: 40px;
+            font-size: 22px;
+            margin-bottom: 30px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 0.8),
                 0 0 30px rgba(0, 0, 0, 0.8),
                 2px 2px 4px rgba(0, 0, 0, 1);
-            animation: fadeIn 0.8s ease-in;
+            animation: fadeIn 0.5s ease-in;
         }
 
-        .subtitle {
-            color: #e6b980;
-            font-size: 16px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            text-shadow:
-                0 0 10px rgba(230, 185, 128, 0.6),
-                2px 2px 4px rgba(0, 0, 0, 1);
+        @media (min-width: 768px) {
+            .container {
+                max-width: 800px;
+            }
+            .title {
+                font-size: 26px;
+            }
         }
 
         .shuffle-area {
             position: relative;
-            height: 320px;
+            height: 300px;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             opacity: 1;
             transition: opacity 0.5s ease-out;
         }
@@ -87,10 +88,10 @@
 
         .shuffle-card {
             position: absolute;
-            width: 120px;
-            height: 180px;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            width: 100px;
+            height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
             background: url('./assets/back.webp') center/cover,
                         url('./assets/back.jpg') center/cover,
                         linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
@@ -99,47 +100,48 @@
             top: 50%;
         }
 
-        @keyframes shuffleCircle {
-            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(80px) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(80px) rotate(-360deg); }
+        @keyframes shuffle1 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(-120%, -80%) rotate(-25deg); opacity: 0.8; }
+        }
+        @keyframes shuffle2 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(20%, -70%) rotate(35deg); opacity: 0.8; }
+        }
+        @keyframes shuffle3 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(-80%, 20%) rotate(-40deg); opacity: 0.8; }
+        }
+        @keyframes shuffle4 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(40%, 25%) rotate(28deg); opacity: 0.8; }
+        }
+        @keyframes shuffle5 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(0%, -100%) rotate(-15deg); opacity: 0.8; }
         }
 
-        .shuffle-card:nth-child(1) {
-            animation: shuffleCircle 2.4s linear infinite;
-            animation-delay: 0s;
-        }
-        .shuffle-card:nth-child(2) {
-            animation: shuffleCircle 2.4s linear infinite;
-            animation-delay: -0.48s;
-        }
-        .shuffle-card:nth-child(3) {
-            animation: shuffleCircle 2.4s linear infinite;
-            animation-delay: -0.96s;
-        }
-        .shuffle-card:nth-child(4) {
-            animation: shuffleCircle 2.4s linear infinite;
-            animation-delay: -1.44s;
-        }
-        .shuffle-card:nth-child(5) {
-            animation: shuffleCircle 2.4s linear infinite;
-            animation-delay: -1.92s;
-        }
+        .shuffle-card:nth-child(1) { animation: shuffle1 1.2s linear infinite; animation-delay: -0s; }
+        .shuffle-card:nth-child(2) { animation: shuffle2 1.2s linear infinite; animation-delay: -0.24s; }
+        .shuffle-card:nth-child(3) { animation: shuffle3 1.2s linear infinite; animation-delay: -0.48s; }
+        .shuffle-card:nth-child(4) { animation: shuffle4 1.2s linear infinite; animation-delay: -0.72s; }
+        .shuffle-card:nth-child(5) { animation: shuffle5 1.2s linear infinite; animation-delay: -0.96s; }
 
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            perspective: 1200px;
+            perspective: 1000px;
             opacity: 0;
             transition: opacity 0.5s ease-in;
             max-width: 100%;
-            margin: 0 auto;
         }
 
         @media (min-width: 768px) {
             .grid {
-                gap: 20px;
-                max-width: 800px;
+                gap: 18px;
+                max-width: 650px;
+                margin: 0 auto;
             }
         }
 
@@ -154,7 +156,7 @@
             position: relative;
             cursor: pointer;
             transform-style: preserve-3d;
-            transition: transform 0.5s ease-out;
+            transition: transform 0.6s;
             touch-action: manipulation;
         }
 
@@ -167,22 +169,17 @@
         }
 
         .card-container.selected {
-            animation: pulseGlow 1.2s ease-in-out infinite;
+            animation: pulse 0.5s ease-in-out;
         }
 
         .card-container.locked {
             pointer-events: none;
-            opacity: 0.5;
-            filter: grayscale(50%);
+            opacity: 0.6;
         }
 
-        @keyframes pulseGlow {
-            0%, 100% {
-                filter: brightness(1) drop-shadow(0 0 15px rgba(230, 185, 128, 0.6));
-            }
-            50% {
-                filter: brightness(1.25) drop-shadow(0 0 30px rgba(230, 185, 128, 1));
-            }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotateY(180deg); }
+            50% { transform: scale(1.05) rotateY(180deg); }
         }
 
         .card-back, .card-front {
@@ -190,8 +187,11 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border: 2px solid #8b6f47;
         }
 
@@ -202,18 +202,15 @@
             transition: all 0.3s ease;
         }
 
-        .card-container:not(.disabled):not(.selected):hover .card-back {
-            box-shadow: 0 12px 35px rgba(230, 185, 128, 0.6);
+        .card-container:not(.disabled):hover .card-back {
+            box-shadow: 0 10px 30px rgba(230, 185, 128, 0.6);
             border-color: #e6b980;
-            transform: scale(1.02);
         }
 
         .card-front {
             background: #000;
             transform: rotateY(180deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
             overflow: hidden;
         }
 
@@ -221,52 +218,34 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            display: block;
-        }
-
-        .card-front .emoji-fallback {
-            font-size: 64px;
-            display: none;
-        }
-
-        .card-front.error-state {
-            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
-        }
-
-        .card-front.error-state img {
-            display: none;
-        }
-
-        .card-front.error-state .emoji-fallback {
-            display: block;
+            border-radius: 6px;
         }
 
         .card-container.selected .card-front {
             box-shadow:
-                0 0 40px rgba(230, 185, 128, 1),
-                0 0 70px rgba(230, 185, 128, 0.7);
-            border-color: #ffd700;
-            border-width: 3px;
+                0 0 30px rgba(230, 185, 128, 0.9),
+                0 0 50px rgba(230, 185, 128, 0.6);
+            border-color: #e6b980;
         }
 
         .card-number {
             position: absolute;
-            bottom: 8px;
-            right: 10px;
+            bottom: 5px;
+            right: 8px;
             color: #e6b980;
-            font-size: 14px;
+            font-size: 12px;
+            opacity: 0.9;
             font-weight: bold;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px 8px;
-            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
         .message {
             color: #e6b980;
             font-size: 18px;
-            margin-top: 30px;
-            min-height: 30px;
+            margin-top: 20px;
+            min-height: 25px;
             animation: fadeIn 0.5s ease-in;
             text-shadow:
                 0 0 10px rgba(230, 185, 128, 0.8),
@@ -274,11 +253,11 @@
         }
 
         .message.success {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             text-shadow:
-                0 0 20px rgba(230, 185, 128, 1),
-                0 0 40px rgba(230, 185, 128, 0.8);
+                0 0 15px rgba(230, 185, 128, 1),
+                0 0 30px rgba(230, 185, 128, 0.8);
         }
 
         @keyframes fadeIn {
@@ -288,112 +267,83 @@
 
         .sparkle {
             position: absolute;
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
             background: #e6b980;
             border-radius: 50%;
             pointer-events: none;
-            animation: sparkleFloat 2.5s ease-in-out infinite;
-            box-shadow: 0 0 10px rgba(230, 185, 128, 1);
+            animation: sparkleFloat 2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(230, 185, 128, 0.8);
         }
 
         @keyframes sparkleFloat {
             0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
-            50% { opacity: 1; transform: translateY(-50px) scale(1.5); }
+            50% { opacity: 1; transform: translateY(-40px) scale(1); }
         }
 
         .final-screen {
             display: none;
             text-align: center;
-            opacity: 0;
-            transition: opacity 0.6s ease-in;
+            animation: fadeIn 0.8s ease-in;
         }
 
         .final-screen.show {
             display: block;
-            opacity: 1;
         }
 
         .final-screen h2 {
             color: #e6b980;
-            font-size: 28px;
+            font-size: 24px;
             margin-bottom: 30px;
             text-shadow:
-                0 0 25px rgba(230, 185, 128, 1),
-                0 0 40px rgba(230, 185, 128, 0.7),
+                0 0 20px rgba(230, 185, 128, 1),
+                0 0 30px rgba(230, 185, 128, 0.6),
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        .selected-card-display {
-            margin: 40px auto;
-            max-width: 280px;
+        .selected-cards-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px auto;
+            max-width: min(90vw, 400px);
         }
 
-        @media (min-width: 768px) {
-            .selected-card-display {
-                max-width: 350px;
-            }
-        }
-
-        .big-card {
-            width: 100%;
+        .mini-card {
+            width: clamp(140px, 35vw, 200px);
+            height: auto;
             aspect-ratio: 2/3;
-            border-radius: 12px;
-            border: 3px solid #e6b980;
-            box-shadow:
-                0 0 40px rgba(230, 185, 128, 0.8),
-                0 0 70px rgba(230, 185, 128, 0.5);
+            border-radius: 8px;
+            border: 2px solid #e6b980;
+            box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
             overflow: hidden;
             background: #000;
-            animation: dropFromTop 0.8s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        @keyframes dropFromTop {
-            0% {
-                transform: translateY(-100vh);
-                opacity: 0;
-            }
-            60% {
-                transform: translateY(10px);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .big-card img {
+        .mini-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .big-card .emoji-fallback {
-            font-size: 96px;
-            display: none;
-        }
+        @media (min-width: 768px) {
+            .selected-cards-display {
+                max-width: 350px;
+            }
 
-        .big-card.error-state {
-            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
-        }
+            .mini-card {
+                width: 200px;
+            }
 
-        .big-card.error-state img {
-            display: none;
-        }
-
-        .big-card.error-state .emoji-fallback {
-            display: block;
+            .final-screen h2 {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title" id="title">🌟 Карта дня 🌟</h1>
-        <p class="subtitle" id="subtitle">Сосредоточься на своём вопросе...</p>
+        <h1 class="title" id="title">✨ Перетасовываю карты... ✨</h1>
 
         <div class="shuffle-area" id="shuffleArea">
             <div class="shuffle-card"></div>
@@ -407,10 +357,8 @@
 
         <div class="final-screen" id="finalScreen">
             <h2>✨ Твоя карта дня ✨</h2>
-            <div class="selected-card-display">
-                <div class="big-card" id="bigCard"></div>
-            </div>
-            <p class="message">Отправляю тёте Зине...</p>
+            <div class="selected-cards-display" id="selectedCardsDisplay"></div>
+            <p class="message">Отправляю результат тёте Зине...</p>
         </div>
 
         <div class="message" id="message"></div>
@@ -419,7 +367,7 @@
     <script>
         const TOTAL_CARDS = 78;
         const CARDS_TO_SHOW = 9;
-        const SHUFFLE_DURATION = 3000;
+        const SHUFFLE_DURATION = 2500;
 
         const CARD_IMAGES = [
             '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
@@ -466,7 +414,7 @@
         function selectRandomCards() {
             const shuffled = shuffleArray(ALL_CARDS);
             selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
-            console.log('Карты для выбора:', selectedGrid);
+            console.log('Выбранные карты для сетки:', selectedGrid);
         }
 
         function getCardImagePath(cardId) {
@@ -494,17 +442,15 @@
                 img.alt = `Карта ${cardId + 1}`;
                 img.loading = 'lazy';
 
-                const emoji = document.createElement('div');
-                emoji.className = 'emoji-fallback';
-                emoji.textContent = '🔮';
-
                 img.onerror = function() {
-                    console.error(`Ошибка загрузки карты ${cardId}:`, this.src);
-                    front.classList.add('error-state');
+                    console.error(`Не удалось загрузить карту: ${cardId}`);
+                    this.style.display = 'none';
+                    front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
+                    front.textContent = '🔮';
+                    front.style.fontSize = '48px';
                 };
 
                 front.appendChild(img);
-                front.appendChild(emoji);
 
                 const number = document.createElement('span');
                 number.className = 'card-number';
@@ -517,13 +463,13 @@
                 container.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (cardsInteractionEnabled && !isLocked) {
+                    if (cardsInteractionEnabled) {
                         handleCardClick(container, index, cardId);
                     }
                 });
 
                 container.addEventListener('touchstart', (e) => {
-                    if (!cardsInteractionEnabled || isLocked) {
+                    if (!cardsInteractionEnabled) {
                         e.preventDefault();
                         e.stopPropagation();
                     }
@@ -534,10 +480,7 @@
         }
 
         function handleCardClick(container, index, cardId) {
-            if (isLocked || !cardsInteractionEnabled) {
-                console.log('Клики отключены');
-                return;
-            }
+            if (isLocked || !cardsInteractionEnabled) return;
 
             if (selectedIndex !== null && selectedIndex !== index) {
                 const prevCard = document.querySelector(`[data-index="${selectedIndex}"]`);
@@ -553,7 +496,11 @@
                 selectedIndex = null;
                 selectedCard = null;
             } else {
-                container.classList.add('flipped', 'selected');
+                container.classList.add('flipped');
+                setTimeout(() => {
+                    container.classList.add('selected');
+                }, 300);
+
                 selectedIndex = index;
                 selectedCard = cardId;
 
@@ -570,7 +517,7 @@
             const message = document.getElementById('message');
 
             if (selectedCard === null) {
-                message.textContent = 'Выбери одну карту, которая тебя притягивает';
+                message.textContent = 'Слушай сердцем... Выбери свою карту';
             } else {
                 message.textContent = '';
             }
@@ -584,51 +531,33 @@
                 card.classList.add('disabled');
             });
 
-            document.getElementById('message').textContent = '✨ Отлично! ✨';
+            document.getElementById('message').textContent = '✨ Готово! ✨';
             document.getElementById('message').classList.add('success');
 
-            setTimeout(showFinalScreen, 800);
+            setTimeout(showFinalScreen, 1000);
         }
 
         function showFinalScreen() {
-            const grid = document.getElementById('grid');
-            const message = document.getElementById('message');
-            const subtitle = document.getElementById('subtitle');
-            const title = document.getElementById('title');
+            document.getElementById('grid').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('title').style.display = 'none';
 
-            grid.style.opacity = '0';
-            message.style.opacity = '0';
-            subtitle.style.opacity = '0';
+            const finalScreen = document.getElementById('finalScreen');
+            const display = document.getElementById('selectedCardsDisplay');
 
-            setTimeout(() => {
-                grid.style.display = 'none';
-                message.style.display = 'none';
-                subtitle.style.display = 'none';
-                title.style.display = 'none';
+            const miniCard = document.createElement('div');
+            miniCard.className = 'mini-card';
 
-                const finalScreen = document.getElementById('finalScreen');
-                const bigCard = document.getElementById('bigCard');
+            const img = document.createElement('img');
+            img.src = getCardImagePath(selectedCard);
+            img.alt = `Выбранная карта`;
 
-                const img = document.createElement('img');
-                img.src = getCardImagePath(selectedCard);
-                img.alt = 'Карта дня';
+            miniCard.appendChild(img);
+            display.appendChild(miniCard);
 
-                const emoji = document.createElement('div');
-                emoji.className = 'emoji-fallback';
-                emoji.textContent = '🔮';
+            finalScreen.classList.add('show');
 
-                img.onerror = function() {
-                    console.error(`Ошибка загрузки финальной карты ${selectedCard}:`, this.src);
-                    bigCard.classList.add('error-state');
-                };
-
-                bigCard.appendChild(img);
-                bigCard.appendChild(emoji);
-
-                finalScreen.classList.add('show');
-
-                setTimeout(sendToBot, 2000);
-            }, 500);
+            setTimeout(sendToBot, 2000);
         }
 
         let dataSent = false;
@@ -650,7 +579,7 @@
                 timestamp: new Date().toISOString()
             };
 
-            console.log('🎴 Отправка карты дня:', result);
+            console.log('🎴 Отправка данных в бота:', result);
 
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.sendData(JSON.stringify(result));
@@ -662,7 +591,7 @@
         }
 
         function createSparkles() {
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
                     const sparkle = document.createElement('div');
                     sparkle.className = 'sparkle';
@@ -671,7 +600,7 @@
                     sparkle.style.animationDelay = Math.random() * 2 + 's';
                     document.body.appendChild(sparkle);
 
-                    setTimeout(() => sparkle.remove(), 2500);
+                    setTimeout(() => sparkle.remove(), 2000);
                 }, i * 100);
             }
         }
@@ -685,7 +614,7 @@
         }
 
         function init() {
-            console.log('🌟 Инициализация "Карта дня"');
+            console.log('🎴 Инициализация WebApp');
 
             selectRandomCards();
             createGrid();
@@ -709,7 +638,7 @@
             }, SHUFFLE_DURATION);
 
             createSparkles();
-            setInterval(createSparkles, 4000);
+            setInterval(createSparkles, 3000);
         }
 
         if (window.Telegram && window.Telegram.WebApp) {
