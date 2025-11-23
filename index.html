@@ -612,25 +612,30 @@
             const result = {
                 cards: positionsForBot,
                 picks: positionsForBot,
-                selected: positionsForBot,
-                selected_cards: selectedCards,
-                selected_indices: selectedIndices,
-                grid: selectedGrid,
-                timestamp: new Date().toISOString()
+                selected: positionsForBot
             };
 
             console.log('🎴 Отправка данных в бота:', result);
             console.log('📍 Позиции для бота (1-9):', positionsForBot);
 
-            if (window.Telegram && window.Telegram.WebApp) {
-                const jsonData = JSON.stringify(result);
-                console.log('📤 JSON для отправки:', jsonData);
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const jsonData = JSON.stringify(result);
+                    console.log('📤 JSON для отправки:', jsonData);
 
-                window.Telegram.WebApp.sendData(jsonData);
-                window.Telegram.WebApp.close();
-            } else {
-                alert('Выбранные позиции: ' + positionsForBot.join(', '));
-                console.log('✅ Результат для отправки:', result);
+                    window.Telegram.WebApp.sendData(jsonData);
+
+                    setTimeout(() => {
+                        console.log('🚪 Закрываем WebApp');
+                        window.Telegram.WebApp.close();
+                    }, 500);
+                } else {
+                    console.error('❌ Telegram WebApp не доступен!');
+                    alert('Выбранные позиции: ' + positionsForBot.join(', '));
+                }
+            } catch (e) {
+                console.error('❌ Ошибка отправки:', e);
+                alert('Ошибка: ' + e.message);
             }
         }
 

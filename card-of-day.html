@@ -594,7 +594,6 @@
 
             setTimeout(sendToBot, 2000);
         }
-
         let dataSent = false;
         function sendToBot() {
             if (dataSent) {
@@ -606,22 +605,29 @@
             const positionForBot = selectedIndex + 1;
 
             const result = {
-                card: positionForBot,
-                selected_card: selectedCard,
-                selected_index: selectedIndex,
-                grid: selectedGrid,
-                type: 'card_of_day',
-                timestamp: new Date().toISOString()
+                card: positionForBot
             };
 
             console.log('🎴 Отправка данных в бота:', result);
 
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.sendData(JSON.stringify(result));
-                window.Telegram.WebApp.close();
-            } else {
-                alert('Выбрана карта: ' + positionForBot);
-                console.log('✅ Результат:', result);
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const jsonData = JSON.stringify(result);
+                    console.log('📤 JSON для отправки:', jsonData);
+
+                    window.Telegram.WebApp.sendData(jsonData);
+
+                    setTimeout(() => {
+                        console.log('🚪 Закрываем WebApp');
+                        window.Telegram.WebApp.close();
+                    }, 500);
+                } else {
+                    console.error('❌ Telegram WebApp не доступен!');
+                    alert('Выбрана карта: ' + positionForBot);
+                }
+            } catch (e) {
+                console.error('❌ Ошибка отправки:', e);
+                alert('Ошибка: ' + e.message);
             }
         }
 
