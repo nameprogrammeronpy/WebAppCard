@@ -28,7 +28,7 @@
             align-items: center;
             min-height: 100vh;
             font-family: 'Georgia', serif;
-            overflow: hidden;
+            overflow-x: hidden;
             padding: 10px;
             touch-action: manipulation;
         }
@@ -48,7 +48,7 @@
             text-align: center;
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 900px;
             padding: 0 15px;
         }
 
@@ -128,6 +128,14 @@
             max-width: 100%;
         }
 
+        @media (min-width: 768px) {
+            .grid {
+                gap: 20px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        }
+
         .grid.show {
             display: grid;
             opacity: 1;
@@ -202,6 +210,24 @@
             height: 100%;
             object-fit: cover;
             border-radius: 6px;
+            display: block;
+        }
+
+        .card-front .emoji-fallback {
+            font-size: 48px;
+            display: none;
+        }
+
+        .card-front.error-state {
+            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
+        }
+
+        .card-front.error-state img {
+            display: none;
+        }
+
+        .card-front.error-state .emoji-fallback {
+            display: block;
         }
 
         .card-container.selected .card-front {
@@ -264,7 +290,6 @@
             50% { opacity: 1; transform: translateY(-40px) scale(1); }
         }
 
-        /* ✅ АДАПТИВНЫЙ ФИНАЛЬНЫЙ ЭКРАН */
         .final-screen {
             display: none;
             text-align: center;
@@ -290,12 +315,11 @@
             justify-content: center;
             gap: 15px;
             margin: 30px auto;
-            /* ✅ АДАПТИВНАЯ ШИРИНА */
             max-width: min(90vw, 500px);
+            flex-wrap: wrap;
         }
 
         .mini-card {
-            /* ✅ АДАПТИВНЫЙ РАЗМЕР */
             width: clamp(100px, 28vw, 150px);
             height: auto;
             aspect-ratio: 2/3;
@@ -304,6 +328,9 @@
             box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
             overflow: hidden;
             background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .mini-card img {
@@ -312,14 +339,31 @@
             object-fit: cover;
         }
 
-        /* ✅ НА ПК: карты крупнее */
+        .mini-card .emoji-fallback {
+            font-size: 64px;
+            display: none;
+        }
+
+        .mini-card.error-state {
+            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
+        }
+
+        .mini-card.error-state img {
+            display: none;
+        }
+
+        .mini-card.error-state .emoji-fallback {
+            display: block;
+        }
+
         @media (min-width: 768px) {
             .selected-cards-display {
                 gap: 25px;
+                max-width: 600px;
             }
 
             .mini-card {
-                width: 140px;
+                width: 160px;
             }
 
             .final-screen h2 {
@@ -430,15 +474,17 @@
                 img.alt = `Карта ${cardId + 1}`;
                 img.loading = 'lazy';
 
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-fallback';
+                emoji.textContent = '🔮';
+
                 img.onerror = function() {
-                    console.error(`Не удалось загрузить карту: ${cardId}`);
-                    this.style.display = 'none';
-                    front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
-                    front.textContent = '🔮';
-                    front.style.fontSize = '48px';
+                    console.error(`Не удалось загрузить карту ${cardId}:`, this.src);
+                    front.classList.add('error-state');
                 };
 
                 front.appendChild(img);
+                front.appendChild(emoji);
 
                 const number = document.createElement('span');
                 number.className = 'card-number';
@@ -524,27 +570,47 @@
         }
 
         function showFinalScreen() {
-            document.getElementById('grid').style.display = 'none';
-            document.getElementById('message').style.display = 'none';
+            const grid = document.getElementById('grid');
+            const message = document.getElementById('message');
+            const title = document.getElementById('title');
 
-            const finalScreen = document.getElementById('finalScreen');
-            const display = document.getElementById('selectedCardsDisplay');
+            grid.style.opacity = '0';
+            message.style.opacity = '0';
 
-            selectedCards.forEach((cardId, idx) => {
-                const miniCard = document.createElement('div');
-                miniCard.className = 'mini-card';
+            setTimeout(() => {
+                grid.style.display = 'none';
+                message.style.display = 'none';
+                title.style.display = 'none';
 
-                const img = document.createElement('img');
-                img.src = getCardImagePath(cardId);
-                img.alt = `Выбранная карта ${idx + 1}`;
+                const finalScreen = document.getElementById('finalScreen');
+                const display = document.getElementById('selectedCardsDisplay');
 
-                miniCard.appendChild(img);
-                display.appendChild(miniCard);
-            });
+                selectedCards.forEach((cardId, idx) => {
+                    const miniCard = document.createElement('div');
+                    miniCard.className = 'mini-card';
 
-            finalScreen.classList.add('show');
+                    const img = document.createElement('img');
+                    img.src = getCardImagePath(cardId);
+                    img.alt = `Выбранная карта ${idx + 1}`;
 
-            setTimeout(sendToBot, 2000);
+                    const emoji = document.createElement('div');
+                    emoji.className = 'emoji-fallback';
+                    emoji.textContent = '🔮';
+
+                    img.onerror = function() {
+                        console.error(`Не удалось загрузить финальную карту ${cardId}:`, this.src);
+                        miniCard.classList.add('error-state');
+                    };
+
+                    miniCard.appendChild(img);
+                    miniCard.appendChild(emoji);
+                    display.appendChild(miniCard);
+                });
+
+                finalScreen.classList.add('show');
+
+                setTimeout(sendToBot, 2000);
+            }, 500);
         }
 
         let dataSent = false;

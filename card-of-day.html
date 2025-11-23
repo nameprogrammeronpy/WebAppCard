@@ -27,7 +27,7 @@
             align-items: center;
             min-height: 100vh;
             font-family: 'Georgia', serif;
-            overflow: hidden;
+            overflow-x: hidden;
             padding: 20px;
             touch-action: manipulation;
         }
@@ -47,7 +47,7 @@
             text-align: center;
             position: relative;
             width: 100%;
-            max-width: 450px;
+            max-width: 900px;
         }
 
         .title {
@@ -132,8 +132,15 @@
             perspective: 1200px;
             opacity: 0;
             transition: opacity 0.5s ease-in;
-            max-width: 400px;
+            max-width: 100%;
             margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                gap: 20px;
+                max-width: 800px;
+            }
         }
 
         .grid.show {
@@ -204,7 +211,9 @@
         .card-front {
             background: #000;
             transform: rotateY(180deg);
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
 
@@ -213,6 +222,24 @@
             height: 100%;
             object-fit: cover;
             border-radius: 8px;
+            display: block;
+        }
+
+        .card-front .emoji-fallback {
+            font-size: 64px;
+            display: none;
+        }
+
+        .card-front.error-state {
+            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
+        }
+
+        .card-front.error-state img {
+            display: none;
+        }
+
+        .card-front.error-state .emoji-fallback {
+            display: block;
         }
 
         .card-container.selected .card-front {
@@ -275,7 +302,6 @@
             50% { opacity: 1; transform: translateY(-50px) scale(1.5); }
         }
 
-        /* ✅ ФИНАЛЬНЫЙ ЭКРАН: плавное появление */
         .final-screen {
             display: none;
             text-align: center;
@@ -300,10 +326,15 @@
 
         .selected-card-display {
             margin: 40px auto;
-            max-width: 250px;
+            max-width: 280px;
         }
 
-        /* ✅ КАРТА ПАДАЕТ СВЕРХУ (как в раскладе) */
+        @media (min-width: 768px) {
+            .selected-card-display {
+                max-width: 350px;
+            }
+        }
+
         .big-card {
             width: 100%;
             aspect-ratio: 2/3;
@@ -314,8 +345,10 @@
                 0 0 70px rgba(230, 185, 128, 0.5);
             overflow: hidden;
             background: #000;
-            /* ✅ АНИМАЦИЯ: падение сверху */
             animation: dropFromTop 0.8s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @keyframes dropFromTop {
@@ -337,6 +370,23 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .big-card .emoji-fallback {
+            font-size: 96px;
+            display: none;
+        }
+
+        .big-card.error-state {
+            background: linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%);
+        }
+
+        .big-card.error-state img {
+            display: none;
+        }
+
+        .big-card.error-state .emoji-fallback {
+            display: block;
         }
     </style>
 </head>
@@ -444,15 +494,17 @@
                 img.alt = `Карта ${cardId + 1}`;
                 img.loading = 'lazy';
 
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-fallback';
+                emoji.textContent = '🔮';
+
                 img.onerror = function() {
-                    console.error(`Ошибка загрузки: ${cardId}`);
-                    this.style.display = 'none';
-                    front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
-                    front.textContent = '🔮';
-                    front.style.fontSize = '48px';
+                    console.error(`Ошибка загрузки карты ${cardId}:`, this.src);
+                    front.classList.add('error-state');
                 };
 
                 front.appendChild(img);
+                front.appendChild(emoji);
 
                 const number = document.createElement('span');
                 number.className = 'card-number';
@@ -542,6 +594,7 @@
             const grid = document.getElementById('grid');
             const message = document.getElementById('message');
             const subtitle = document.getElementById('subtitle');
+            const title = document.getElementById('title');
 
             grid.style.opacity = '0';
             message.style.opacity = '0';
@@ -551,6 +604,7 @@
                 grid.style.display = 'none';
                 message.style.display = 'none';
                 subtitle.style.display = 'none';
+                title.style.display = 'none';
 
                 const finalScreen = document.getElementById('finalScreen');
                 const bigCard = document.getElementById('bigCard');
@@ -559,7 +613,17 @@
                 img.src = getCardImagePath(selectedCard);
                 img.alt = 'Карта дня';
 
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-fallback';
+                emoji.textContent = '🔮';
+
+                img.onerror = function() {
+                    console.error(`Ошибка загрузки финальной карты ${selectedCard}:`, this.src);
+                    bigCard.classList.add('error-state');
+                };
+
                 bigCard.appendChild(img);
+                bigCard.appendChild(emoji);
 
                 finalScreen.classList.add('show');
 
