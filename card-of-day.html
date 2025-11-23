@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Карта дня</title>
 
-    <!-- Preload критичных ресурсов -->
     <link rel="preload" as="image" href="./assets/background.webp">
     <link rel="preload" as="image" href="./assets/back.webp">
 
@@ -19,7 +18,6 @@
         }
 
         body {
-            /* WebP с фоллбэком на JPG */
             background: url('./assets/background.webp') center/cover,
                         url('./assets/background.jpg') center/cover,
                         linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -73,7 +71,6 @@
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        /* === АНИМАЦИЯ ПЕРЕТАСОВКИ === */
         .shuffle-area {
             position: relative;
             height: 320px;
@@ -107,7 +104,6 @@
             100% { transform: translate(-50%, -50%) rotate(360deg) translateX(80px) rotate(-360deg); }
         }
 
-        /* Карты начинают с разных позиций */
         .shuffle-card:nth-child(1) {
             animation: shuffleCircle 2.4s linear infinite;
             animation-delay: 0s;
@@ -129,7 +125,6 @@
             animation-delay: -1.92s;
         }
 
-        /* === СЕТКА 3×3 === */
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
@@ -152,7 +147,7 @@
             position: relative;
             cursor: pointer;
             transform-style: preserve-3d;
-            transition: transform 0.7s;
+            transition: transform 0.5s ease-out;
             touch-action: manipulation;
         }
 
@@ -165,7 +160,7 @@
         }
 
         .card-container.selected {
-            animation: pulseGlow 1s ease-in-out infinite;
+            animation: pulseGlow 1.2s ease-in-out infinite;
         }
 
         .card-container.locked {
@@ -176,12 +171,10 @@
 
         @keyframes pulseGlow {
             0%, 100% {
-                transform: scale(1) rotateY(180deg);
-                filter: brightness(1);
+                filter: brightness(1) drop-shadow(0 0 15px rgba(230, 185, 128, 0.6));
             }
             50% {
-                transform: scale(1.08) rotateY(180deg);
-                filter: brightness(1.3);
+                filter: brightness(1.25) drop-shadow(0 0 30px rgba(230, 185, 128, 1));
             }
         }
 
@@ -225,8 +218,7 @@
         .card-container.selected .card-front {
             box-shadow:
                 0 0 40px rgba(230, 185, 128, 1),
-                0 0 70px rgba(230, 185, 128, 0.7),
-                0 0 100px rgba(230, 185, 128, 0.4);
+                0 0 70px rgba(230, 185, 128, 0.7);
             border-color: #ffd700;
             border-width: 3px;
         }
@@ -283,15 +275,17 @@
             50% { opacity: 1; transform: translateY(-50px) scale(1.5); }
         }
 
-        /* Финальный экран */
+        /* ✅ ФИНАЛЬНЫЙ ЭКРАН: плавное появление */
         .final-screen {
             display: none;
             text-align: center;
-            animation: fadeIn 1s ease-in;
+            opacity: 0;
+            transition: opacity 0.6s ease-in;
         }
 
         .final-screen.show {
             display: block;
+            opacity: 1;
         }
 
         .final-screen h2 {
@@ -309,6 +303,7 @@
             max-width: 250px;
         }
 
+        /* ✅ КАРТА ПАДАЕТ СВЕРХУ (как в раскладе) */
         .big-card {
             width: 100%;
             aspect-ratio: 2/3;
@@ -319,12 +314,23 @@
                 0 0 70px rgba(230, 185, 128, 0.5);
             overflow: hidden;
             background: #000;
-            animation: cardReveal 1s ease-out;
+            /* ✅ АНИМАЦИЯ: падение сверху */
+            animation: dropFromTop 0.8s ease-out;
         }
 
-        @keyframes cardReveal {
-            0% { transform: scale(0.5) rotateY(-90deg); opacity: 0; }
-            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        @keyframes dropFromTop {
+            0% {
+                transform: translateY(-100vh);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(10px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .big-card img {
@@ -339,7 +345,6 @@
         <h1 class="title" id="title">🌟 Карта дня 🌟</h1>
         <p class="subtitle" id="subtitle">Сосредоточься на своём вопросе...</p>
 
-        <!-- Анимация перетасовки -->
         <div class="shuffle-area" id="shuffleArea">
             <div class="shuffle-card"></div>
             <div class="shuffle-card"></div>
@@ -348,10 +353,8 @@
             <div class="shuffle-card"></div>
         </div>
 
-        <!-- Сетка выбора карт -->
         <div class="grid" id="grid"></div>
 
-        <!-- Финальный экран -->
         <div class="final-screen" id="finalScreen">
             <h2>✨ Твоя карта дня ✨</h2>
             <div class="selected-card-display">
@@ -366,37 +369,27 @@
     <script>
         const TOTAL_CARDS = 78;
         const CARDS_TO_SHOW = 9;
-        const CARDS_TO_SELECT = 1;
         const SHUFFLE_DURATION = 3000;
 
         const CARD_IMAGES = [
-            // Старшие арканы (0-21)
             '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
             '4_emperor.webp', '5_hierophant.webp', '6_lovers.webp', '7_chariot.webp',
             '8_strength.webp', '9_hermit.webp', '10_wheel_of_fortune.webp', '11_justice.webp',
             '12_hanged_man.webp', '13_death.webp', '14_temperance.webp', '15_devil.webp',
             '16_tower.webp', '17_star.webp', '18_moon.webp', '19_sun.webp',
             '20_judgement.webp', '21_world.webp',
-
-            // МЕЧИ (22-35)
             'swords_ace.webp', 'swords_king.webp', 'swords_queen.webp', 'swords_knight.webp',
             'swords_page.webp', 'swords_2.webp', 'swords_3.webp', 'swords_4.webp',
             'swords_5.webp', 'swords_6.webp', 'swords_7.webp', 'swords_8.webp',
             'swords_9.webp', 'swords_10.webp',
-
-            // КУБКИ (36-49)
             'cups_ace.webp', 'cups_king.webp', 'cups_queen.webp', 'cups_knight.webp',
             'cups_page.webp', 'cups_2.webp', 'cups_3.webp', 'cups_4.webp',
             'cups_5.webp', 'cups_6.webp', 'cups_7.webp', 'cups_8.webp',
             'cups_9.webp', 'cups_10.webp',
-
-            // ЖЕЗЛЫ (50-63)
             'wands_ace.webp', 'wands_king.webp', 'wands_queen.webp', 'wands_knight.webp',
             'wands_page.webp', 'wands_2.webp', 'wands_3.webp', 'wands_4.webp',
             'wands_5.webp', 'wands_6.webp', 'wands_7.webp', 'wands_8.webp',
             'wands_9.webp', 'wands_10.webp',
-
-            // ПЕНТАКЛИ (64-77)
             'pentacles_ace.webp', 'pentacles_king.webp', 'pentacles_queen.webp', 'pentacles_knight.webp',
             'pentacles_page.webp', 'pentacles_2.webp', 'pentacles_3.webp', 'pentacles_4.webp',
             'pentacles_5.webp', 'pentacles_6.webp', 'pentacles_7.webp', 'pentacles_8.webp',
@@ -489,13 +482,11 @@
         }
 
         function handleCardClick(container, index, cardId) {
-            // ИСПРАВЛЕНО: строгая проверка что карта не заблокирована
             if (isLocked || !cardsInteractionEnabled) {
                 console.log('Клики отключены');
                 return;
             }
 
-            // Снимаем выбор с предыдущей карты
             if (selectedIndex !== null && selectedIndex !== index) {
                 const prevCard = document.querySelector(`[data-index="${selectedIndex}"]`);
                 if (prevCard) {
@@ -510,23 +501,17 @@
                 selectedIndex = null;
                 selectedCard = null;
             } else {
-                container.classList.add('flipped');
-                setTimeout(() => {
-                    container.classList.add('selected');
-                }, 300);
-
+                container.classList.add('flipped', 'selected');
                 selectedIndex = index;
                 selectedCard = cardId;
+
+                isLocked = true;
+                cardsInteractionEnabled = false;
+
+                setTimeout(finishSelection, 800);
             }
 
             updateMessage();
-
-            if (selectedCard !== null) {
-                // ИСПРАВЛЕНО: сразу блокируем все клики
-                isLocked = true;
-                cardsInteractionEnabled = false;
-                setTimeout(finishSelection, 1500);
-            }
         }
 
         function updateMessage() {
@@ -540,7 +525,6 @@
         }
 
         function finishSelection() {
-            // Блокируем все карты кроме выбранной
             document.querySelectorAll('.card-container').forEach(card => {
                 if (parseInt(card.dataset.index) !== selectedIndex) {
                     card.classList.add('locked');
@@ -551,25 +535,36 @@
             document.getElementById('message').textContent = '✨ Отлично! ✨';
             document.getElementById('message').classList.add('success');
 
-            setTimeout(showFinalScreen, 1200);
+            setTimeout(showFinalScreen, 800);
         }
 
         function showFinalScreen() {
-            document.getElementById('grid').style.display = 'none';
-            document.getElementById('message').style.display = 'none';
-            document.getElementById('subtitle').style.display = 'none';
+            const grid = document.getElementById('grid');
+            const message = document.getElementById('message');
+            const subtitle = document.getElementById('subtitle');
 
-            const finalScreen = document.getElementById('finalScreen');
-            const bigCard = document.getElementById('bigCard');
+            grid.style.opacity = '0';
+            message.style.opacity = '0';
+            subtitle.style.opacity = '0';
 
-            const img = document.createElement('img');
-            img.src = getCardImagePath(selectedCard);
-            img.alt = 'Карта дня';
+            setTimeout(() => {
+                grid.style.display = 'none';
+                message.style.display = 'none';
+                subtitle.style.display = 'none';
 
-            bigCard.appendChild(img);
-            finalScreen.classList.add('show');
+                const finalScreen = document.getElementById('finalScreen');
+                const bigCard = document.getElementById('bigCard');
 
-            setTimeout(sendToBot, 2500);
+                const img = document.createElement('img');
+                img.src = getCardImagePath(selectedCard);
+                img.alt = 'Карта дня';
+
+                bigCard.appendChild(img);
+
+                finalScreen.classList.add('show');
+
+                setTimeout(sendToBot, 2000);
+            }, 500);
         }
 
         let dataSent = false;

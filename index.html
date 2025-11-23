@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Выбор карт Таро</title>
 
-    <!-- Preload критичных ресурсов -->
     <link rel="preload" as="image" href="./assets/background.webp">
     <link rel="preload" as="image" href="./assets/back.webp">
 
@@ -19,7 +18,6 @@
         }
 
         body {
-            /* WebP с фоллбэком на JPG */
             background-image: url('./assets/background.webp'), url('./assets/background.jpg');
             background-size: cover;
             background-position: center;
@@ -65,7 +63,6 @@
             animation: fadeIn 0.5s ease-in;
         }
 
-        /* === АНИМАЦИЯ ПЕРЕТАСОВКИ === */
         .shuffle-area {
             position: relative;
             height: 300px;
@@ -94,7 +91,6 @@
             top: 50%;
         }
 
-        /* ИСПРАВЛЕНО: плавная анимация с самого начала */
         @keyframes shuffle1 {
             0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
             50% { transform: translate(-120%, -80%) rotate(-25deg); opacity: 0.8; }
@@ -122,7 +118,6 @@
         .shuffle-card:nth-child(4) { animation: shuffle4 1.2s linear infinite; animation-delay: -0.72s; }
         .shuffle-card:nth-child(5) { animation: shuffle5 1.2s linear infinite; animation-delay: -0.96s; }
 
-        /* === СЕТКА 3×3 === */
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
@@ -269,7 +264,7 @@
             50% { opacity: 1; transform: translateY(-40px) scale(1); }
         }
 
-        /* Финальный экран */
+        /* ✅ АДАПТИВНЫЙ ФИНАЛЬНЫЙ ЭКРАН */
         .final-screen {
             display: none;
             text-align: center;
@@ -283,7 +278,7 @@
         .final-screen h2 {
             color: #e6b980;
             font-size: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 1),
                 0 0 30px rgba(230, 185, 128, 0.6),
@@ -294,12 +289,16 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin: 30px 0;
+            margin: 30px auto;
+            /* ✅ АДАПТИВНАЯ ШИРИНА */
+            max-width: min(90vw, 500px);
         }
 
         .mini-card {
-            width: 80px;
-            height: 120px;
+            /* ✅ АДАПТИВНЫЙ РАЗМЕР */
+            width: clamp(100px, 28vw, 150px);
+            height: auto;
+            aspect-ratio: 2/3;
             border-radius: 8px;
             border: 2px solid #e6b980;
             box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
@@ -312,13 +311,27 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* ✅ НА ПК: карты крупнее */
+        @media (min-width: 768px) {
+            .selected-cards-display {
+                gap: 25px;
+            }
+
+            .mini-card {
+                width: 140px;
+            }
+
+            .final-screen h2 {
+                font-size: 28px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="title" id="title">✨ Перетасовываю карты... ✨</h1>
 
-        <!-- Анимация перетасовки -->
         <div class="shuffle-area" id="shuffleArea">
             <div class="shuffle-card"></div>
             <div class="shuffle-card"></div>
@@ -327,10 +340,8 @@
             <div class="shuffle-card"></div>
         </div>
 
-        <!-- Сетка выбора карт -->
         <div class="grid" id="grid"></div>
 
-        <!-- Финальный экран -->
         <div class="final-screen" id="finalScreen">
             <h2>✨ Карты выбраны! ✨</h2>
             <div class="selected-cards-display" id="selectedCardsDisplay"></div>
@@ -347,33 +358,24 @@
         const SHUFFLE_DURATION = 2500;
 
         const CARD_IMAGES = [
-            // Старшие арканы (0-21)
             '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
             '4_emperor.webp', '5_hierophant.webp', '6_lovers.webp', '7_chariot.webp',
             '8_strength.webp', '9_hermit.webp', '10_wheel_of_fortune.webp', '11_justice.webp',
             '12_hanged_man.webp', '13_death.webp', '14_temperance.webp', '15_devil.webp',
             '16_tower.webp', '17_star.webp', '18_moon.webp', '19_sun.webp',
             '20_judgement.webp', '21_world.webp',
-
-            // МЕЧИ (22-35)
             'swords_ace.webp', 'swords_king.webp', 'swords_queen.webp', 'swords_knight.webp',
             'swords_page.webp', 'swords_2.webp', 'swords_3.webp', 'swords_4.webp',
             'swords_5.webp', 'swords_6.webp', 'swords_7.webp', 'swords_8.webp',
             'swords_9.webp', 'swords_10.webp',
-
-            // КУБКИ (36-49)
             'cups_ace.webp', 'cups_king.webp', 'cups_queen.webp', 'cups_knight.webp',
             'cups_page.webp', 'cups_2.webp', 'cups_3.webp', 'cups_4.webp',
             'cups_5.webp', 'cups_6.webp', 'cups_7.webp', 'cups_8.webp',
             'cups_9.webp', 'cups_10.webp',
-
-            // ЖЕЗЛЫ (50-63)
             'wands_ace.webp', 'wands_king.webp', 'wands_queen.webp', 'wands_knight.webp',
             'wands_page.webp', 'wands_2.webp', 'wands_3.webp', 'wands_4.webp',
             'wands_5.webp', 'wands_6.webp', 'wands_7.webp', 'wands_8.webp',
             'wands_9.webp', 'wands_10.webp',
-
-            // ПЕНТАКЛИ (64-77)
             'pentacles_ace.webp', 'pentacles_king.webp', 'pentacles_queen.webp', 'pentacles_knight.webp',
             'pentacles_page.webp', 'pentacles_2.webp', 'pentacles_3.webp', 'pentacles_4.webp',
             'pentacles_5.webp', 'pentacles_6.webp', 'pentacles_7.webp', 'pentacles_8.webp',
@@ -566,17 +568,13 @@
             };
 
             console.log('🎴 Отправка данных в бота:', result);
-            console.log('📍 Позиции для бота (1-9):', positionsForBot);
 
             if (window.Telegram && window.Telegram.WebApp) {
-                const jsonData = JSON.stringify(result);
-                console.log('📤 JSON для отправки:', jsonData);
-
-                window.Telegram.WebApp.sendData(jsonData);
+                window.Telegram.WebApp.sendData(JSON.stringify(result));
                 window.Telegram.WebApp.close();
             } else {
                 alert('Выбранные позиции: ' + positionsForBot.join(', '));
-                console.log('✅ Результат для отправки:', result);
+                console.log('✅ Результат:', result);
             }
         }
 
