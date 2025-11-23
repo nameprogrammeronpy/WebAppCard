@@ -52,6 +52,12 @@
             padding: 0 15px;
         }
 
+        @media (min-width: 768px) {
+            .container {
+                max-width: 550px;
+            }
+        }
+
         .title {
             color: #e6b980;
             font-size: 22px;
@@ -64,11 +70,9 @@
         }
 
         @media (min-width: 768px) {
-            .container {
-                max-width: 800px;
-            }
             .title {
-                font-size: 26px;
+                font-size: 20px;
+                margin-bottom: 20px;
             }
         }
 
@@ -79,6 +83,13 @@
             margin-bottom: 20px;
             opacity: 1;
             transition: opacity 0.5s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            .shuffle-area {
+                height: 220px;
+                margin-bottom: 15px;
+            }
         }
 
         .shuffle-area.hidden {
@@ -98,6 +109,13 @@
             border: 2px solid #8b6f47;
             left: 50%;
             top: 50%;
+        }
+
+        @media (min-width: 768px) {
+            .shuffle-card {
+                width: 70px;
+                height: 105px;
+            }
         }
 
         @keyframes shuffle1 {
@@ -139,9 +157,7 @@
 
         @media (min-width: 768px) {
             .grid {
-                gap: 18px;
-                max-width: 650px;
-                margin: 0 auto;
+                gap: 10px;
             }
         }
 
@@ -252,12 +268,25 @@
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
+        @media (min-width: 768px) {
+            .message {
+                font-size: 16px;
+                margin-top: 15px;
+            }
+        }
+
         .message.success {
             font-size: 18px;
             font-weight: bold;
             text-shadow:
                 0 0 15px rgba(230, 185, 128, 1),
                 0 0 30px rgba(230, 185, 128, 0.8);
+        }
+
+        @media (min-width: 768px) {
+            .message.success {
+                font-size: 16px;
+            }
         }
 
         @keyframes fadeIn {
@@ -301,12 +330,26 @@
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
+        @media (min-width: 768px) {
+            .final-screen h2 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
         .selected-cards-display {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin: 30px auto;
             max-width: min(90vw, 400px);
+        }
+
+        @media (min-width: 768px) {
+            .selected-cards-display {
+                max-width: 220px;
+                margin: 20px auto;
+            }
         }
 
         .mini-card {
@@ -320,24 +363,16 @@
             background: #000;
         }
 
+        @media (min-width: 768px) {
+            .mini-card {
+                width: 200px;
+            }
+        }
+
         .mini-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        @media (min-width: 768px) {
-            .selected-cards-display {
-                max-width: 350px;
-            }
-
-            .mini-card {
-                width: 200px;
-            }
-
-            .final-screen h2 {
-                font-size: 28px;
-            }
         }
     </style>
 </head>
