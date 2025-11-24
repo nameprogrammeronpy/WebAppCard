@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Карта дня</title>
 
-    <link rel="preload" as="image" href="./assets/background.webp">
-    <link rel="preload" as="image" href="./assets/back.webp">
+    <link rel="preload" as="image" href="/assets/background.webp">
+    <link rel="preload" as="image" href="/assets/back.webp">
     <style>
         * {
             margin: 0;
@@ -16,7 +16,7 @@
         }
 
         body {
-            background-image: url('./assets/background.webp'), url('./assets/background.jpg');
+            background-image: url('/assets/background.webp'), url('/assets/background.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -101,8 +101,8 @@
             height: 150px;
             border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            background: url('./assets/back.webp') center/cover,
-                        url('./assets/back.jpg') center/cover,
+            background: url('/assets/back.webp') center/cover,
+                        url('/assets/back.jpg') center/cover,
                         linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
             border: 2px solid #8b6f47;
             left: 50%;
@@ -210,8 +210,8 @@
         }
 
         .card-back {
-            background: url('./assets/back.webp') center/cover,
-                        url('./assets/back.jpg') center/cover,
+            background: url('/assets/back.webp') center/cover,
+                        url('/assets/back.jpg') center/cover,
                         linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
             transition: all 0.3s ease;
         }
@@ -451,7 +451,7 @@
         }
 
         function getCardImagePath(cardId) {
-            return `./assets/cards/${CARD_IMAGES[cardId]}`;
+            return `/assets/cards/${CARD_IMAGES[cardId]}`;
         }
 
         function createGrid() {
@@ -493,25 +493,20 @@
                 container.appendChild(back);
                 container.appendChild(front);
 
+                // НОВЫЙ БЛОК: ИСПОЛЬЗУЕМ ТОЛЬКО CLICK С PASSIVE: TRUE
                 container.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     if (cardsInteractionEnabled) {
                         handleCardClick(container, index, cardId);
                     }
-                });
+                }, { passive: true }); // passive: true улучшает производительность
 
-                container.addEventListener('touchstart', (e) => {
-                    if (!cardsInteractionEnabled) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }, { passive: false });
+                // Примечание: touchstart больше не нужен, так как click корректно обрабатывает тач.
 
                 grid.appendChild(container);
-            });
-        }
-
+            }); // Конец forEach
+        } // Конец createGrid
         function handleCardClick(container, index, cardId) {
             if (isLocked || !cardsInteractionEnabled) return;
 
