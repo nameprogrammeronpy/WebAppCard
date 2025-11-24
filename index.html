@@ -620,14 +620,23 @@
 
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
+                    const tg = window.Telegram.WebApp;
                     const jsonData = JSON.stringify(result);
                     console.log('📤 JSON для отправки:', jsonData);
 
-                    window.Telegram.WebApp.sendData(jsonData);
+                    // ✅ ЖДЁМ ПОДТВЕРЖДЕНИЯ ОТ TELEGRAM
+                    tg.onEvent('webAppDataSent', function(params) {
+                        console.log('✅ Данные доставлены в бота');
+                        tg.close();
+                    });
 
+                    // Отправляем данные
+                    tg.sendData(jsonData);
+
+                    // Показываем статус
                     document.getElementById('finalScreen').innerHTML = `
-                        <h2>✨ Данные отправлены! ✨</h2>
-                        <p class="message">Можешь закрыть это окно</p>
+                        <h2>✨ Отправляю... ✨</h2>
+                        <p class="message">Секунду...</p>
                     `;
 
                 } else {
