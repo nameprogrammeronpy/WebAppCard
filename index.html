@@ -599,28 +599,67 @@
             setTimeout(sendToBot, 2000);
         }
 
-        let dataSent = false;
+                let dataSent = false;
+
+        function showFinalScreen() {
+            console.log('✅ showFinalScreen() вызвана');
+
+            document.getElementById('grid').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('title').style.display = 'none';
+
+            const finalScreen = document.getElementById('finalScreen');
+            const display = document.getElementById('selectedCardsDisplay');
+
+            const miniCard = document.createElement('div');
+            miniCard.className = 'mini-card';
+
+            const img = document.createElement('img');
+            img.src = getCardImagePath(selectedCard);
+            img.alt = `Выбранная карта`;
+
+            miniCard.appendChild(img);
+            display.appendChild(miniCard);
+
+            finalScreen.classList.add('show');
+
+            // ✅ ИСПРАВЛЕНИЕ: Используем MainButton
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                tg.MainButton.setText('✨ Готово ✨');
+                tg.MainButton.color = '#e6b980';
+                tg.MainButton.textColor = '#1a0f2e';
+                tg.MainButton.show();
+
+                tg.MainButton.onClick(sendToBot);
+
+                console.log('✅ MainButton показана');
+            } else {
+                setTimeout(sendToBot, 2000);
+            }
+        }
+
         async function sendToBot() {
+            console.log('🎴 sendToBot() вызвана');
+
             if (dataSent) {
                 console.log('⚠️ Данные уже отправлены');
                 return;
             }
             dataSent = true;
 
-            const positionsForBot = selectedIndices.map(idx => idx + 1);
+            const positionForBot = selectedIndex + 1;
 
             const result = {
-                cards: positionsForBot,
-                picks: positionsForBot,
-                selected: positionsForBot
+                card: positionForBot
             };
 
-            console.log('🎴 Отправка данных в бота:', result);
-            console.log('📍 Позиции для бота (1-9):', positionsForBot);
+            console.log('📦 Данные для отправки:', result);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
-                console.error('❌ Telegram WebApp не доступен!');
-                alert('Выбранные позиции: ' + positionsForBot.join(', '));
+                console.error('❌ Telegram WebApp недоступен!');
+                alert('Выбрана карта: ' + positionForBot);
                 return;
             }
 
@@ -628,22 +667,19 @@
                 const tg = window.Telegram.WebApp;
                 const jsonData = JSON.stringify(result);
 
-                console.log('📤 Отправляю JSON:', jsonData);
+                console.log('📤 Отправляю через sendData:', jsonData);
 
-                // ✅ СНАЧАЛА ОТПРАВЛЯЕМ
+                tg.MainButton.hide();
                 tg.sendData(jsonData);
 
-                // ✅ ПРИНУДИТЕЛЬНО ЖДЁМ 300ms (для нативного моста)
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                console.log('✅ Закрываю WebApp');
-                tg.close();
+                console.log('✅ Данные отправлены');
 
             } catch (e) {
                 console.error('❌ Ошибка:', e);
-                alert('Ошибка: ' + e.message);
+                alert('Ошибка: ' + e.message + '\n\nКарта: ' + positionForBot);
             }
         }
+
 
         function createSparkles() {
             for (let i = 0; i < 10; i++) {
