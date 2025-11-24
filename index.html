@@ -600,7 +600,7 @@
         }
 
         let dataSent = false;
-        function sendToBot() {
+        async function sendToBot() {
             if (dataSent) {
                 console.log('⚠️ Данные уже отправлены');
                 return;
@@ -618,33 +618,29 @@
             console.log('🎴 Отправка данных в бота:', result);
             console.log('📍 Позиции для бота (1-9):', positionsForBot);
 
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                console.error('❌ Telegram WebApp не доступен!');
+                alert('Выбранные позиции: ' + positionsForBot.join(', '));
+                return;
+            }
+
             try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const tg = window.Telegram.WebApp;
-                    const jsonData = JSON.stringify(result);
-                    console.log('📤 JSON для отправки:', jsonData);
+                const tg = window.Telegram.WebApp;
+                const jsonData = JSON.stringify(result);
 
-                    // ✅ ЖДЁМ ПОДТВЕРЖДЕНИЯ ОТ TELEGRAM
-                    tg.onEvent('webAppDataSent', function(params) {
-                        console.log('✅ Данные доставлены в бота');
-                        tg.close();
-                    });
+                console.log('📤 Отправляю JSON:', jsonData);
 
-                    // Отправляем данные
-                    tg.sendData(jsonData);
+                // ✅ СНАЧАЛА ОТПРАВЛЯЕМ
+                tg.sendData(jsonData);
 
-                    // Показываем статус
-                    document.getElementById('finalScreen').innerHTML = `
-                        <h2>✨ Отправляю... ✨</h2>
-                        <p class="message">Секунду...</p>
-                    `;
+                // ✅ ПРИНУДИТЕЛЬНО ЖДЁМ 300ms (для нативного моста)
+                await new Promise(resolve => setTimeout(resolve, 300));
 
-                } else {
-                    console.error('❌ Telegram WebApp не доступен!');
-                    alert('Выбранные позиции: ' + positionsForBot.join(', '));
-                }
+                console.log('✅ Закрываю WebApp');
+                tg.close();
+
             } catch (e) {
-                console.error('❌ Ошибка отправки:', e);
+                console.error('❌ Ошибка:', e);
                 alert('Ошибка: ' + e.message);
             }
         }
