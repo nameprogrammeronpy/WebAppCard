@@ -625,10 +625,11 @@
 
                     window.Telegram.WebApp.sendData(jsonData);
 
-                    setTimeout(() => {
-                        console.log('🚪 Закрываем WebApp');
-                        window.Telegram.WebApp.close();
-                    }, 500);
+                    document.getElementById('finalScreen').innerHTML = `
+                        <h2>✨ Данные отправлены! ✨</h2>
+                        <p class="message">Можешь закрыть это окно</p>
+                    `;
+
                 } else {
                     console.error('❌ Telegram WebApp не доступен!');
                     alert('Выбранные позиции: ' + positionsForBot.join(', '));
