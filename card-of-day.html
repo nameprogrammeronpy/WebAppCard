@@ -7,6 +7,8 @@
 
     <link rel="preload" as="image" href="/assets/background.webp">
     <link rel="preload" as="image" href="/assets/back.webp">
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -434,6 +436,7 @@
         let selectedIndex = null;
         let isLocked = false;
         let cardsInteractionEnabled = false;
+        let dataSent = false; // Добавлен флаг для предотвращения двойной отправки
 
         function shuffleArray(array) {
             const shuffled = [...array];
@@ -493,20 +496,16 @@
                 container.appendChild(back);
                 container.appendChild(front);
 
-                // НОВЫЙ БЛОК: ИСПОЛЬЗУЕМ ТОЛЬКО CLICK С PASSIVE: TRUE
                 container.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                     if (cardsInteractionEnabled) {
                         handleCardClick(container, index, cardId);
                     }
-                }, { passive: true }); // passive: true улучшает производительность
-
-                // Примечание: touchstart больше не нужен, так как click корректно обрабатывает тач.
+                }, { passive: true });
 
                 grid.appendChild(container);
-            }); // Конец forEach
-        } // Конец createGrid
+            });
+        }
+
         function handleCardClick(container, index, cardId) {
             if (isLocked || !cardsInteractionEnabled) return;
 
@@ -566,6 +565,8 @@
         }
 
         function showFinalScreen() {
+            console.log('✅ showFinalScreen() вызвана');
+
             document.getElementById('grid').style.display = 'none';
             document.getElementById('message').style.display = 'none';
             document.getElementById('title').style.display = 'none';
@@ -573,6 +574,8 @@
             const finalScreen = document.getElementById('finalScreen');
             const display = document.getElementById('selectedCardsDisplay');
 
+            // Очистка и отображение ОДНОЙ карты
+            display.innerHTML = '';
             const miniCard = document.createElement('div');
             miniCard.className = 'mini-card';
 
@@ -585,26 +588,41 @@
 
             finalScreen.classList.add('show');
 
-            setTimeout(sendToBot, 2000);
+            // ✅ ИСПОЛЬЗУЕМ MAIN BUTTON
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                tg.MainButton.setText('✨ Готово: Отправить ✨');
+                tg.MainButton.color = '#e6b980';
+                tg.MainButton.textColor = '#1a0f2e';
+                tg.MainButton.show();
+                tg.MainButton.onClick(sendToBot);
+
+                console.log('✅ MainButton показана');
+            } else {
+                setTimeout(sendToBot, 2000);
+            }
         }
-        let dataSent = false;
+
         async function sendToBot() {
+            console.log('🎴 sendToBot() вызвана');
+
             if (dataSent) {
                 console.log('⚠️ Данные уже отправлены');
                 return;
             }
             dataSent = true;
 
-            const positionForBot = selectedIndex + 1;
+            const positionForBot = selectedIndex + 1; // Позиция 1-9
 
             const result = {
-                card: positionForBot
+                card: positionForBot // Отправляем под ключом 'card'
             };
 
-            console.log('🎴 Отправка данных в бота:', result);
+            console.log('📦 Данные для отправки:', result);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
-                console.error('❌ Telegram WebApp не доступен!');
+                console.error('❌ Telegram WebApp недоступен!');
                 alert('Выбрана карта: ' + positionForBot);
                 return;
             }
@@ -613,16 +631,12 @@
                 const tg = window.Telegram.WebApp;
                 const jsonData = JSON.stringify(result);
 
-                console.log('📤 Отправляю JSON:', jsonData);
+                console.log('📤 Отправляю через sendData:', jsonData);
 
-                // ✅ СНАЧАЛА ОТПРАВЛЯЕМ
                 tg.sendData(jsonData);
+                tg.close(); // ✅ Закрываем Web App
 
-                // ✅ ПРИНУДИТЕЛЬНО ЖДЁМ 300ms (для нативного моста)
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                console.log('✅ Закрываю WebApp');
-                tg.close();
+                console.log('✅ Данные отправлены');
 
             } catch (e) {
                 console.error('❌ Ошибка:', e);
@@ -695,6 +709,5 @@
             init();
         }
     </script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
