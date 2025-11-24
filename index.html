@@ -440,7 +440,7 @@
     let selectedIndices = [];
     let isLocked = false;
     let cardsInteractionEnabled = false;
-    let dataSent = false; // ✅ Добавлен флаг для предотвращения двойной отправки
+    let dataSent = false;
 
     function shuffleArray(array) {
         const shuffled = [...array];
@@ -500,7 +500,6 @@
             container.appendChild(back);
             container.appendChild(front);
 
-            // ✅ ИСПРАВЛЕНО: Убран preventDefault/stopPropagation из-за passive:true
             container.addEventListener('click', (e) => {
                 if (cardsInteractionEnabled) {
                     handleCardClick(container, index, cardId);
@@ -567,7 +566,6 @@
         setTimeout(showFinalScreen, 1000);
     }
 
-    // ✅ ЕДИНСТВЕННАЯ И ИСПРАВЛЕННАЯ ФУНКЦИЯ showFinalScreen
     function showFinalScreen() {
         console.log('✅ showFinalScreen() вызвана');
 
@@ -578,7 +576,7 @@
         const finalScreen = document.getElementById('finalScreen');
         const display = document.getElementById('selectedCardsDisplay');
 
-        display.innerHTML = ''; // Очистка
+        display.innerHTML = '';
 
         selectedCards.forEach((cardId, idx) => {
             const miniCard = document.createElement('div');
@@ -594,7 +592,7 @@
 
         finalScreen.classList.add('show');
 
-        // ✅ ИСПОЛЬЗУЕМ MAIN BUTTON ДЛЯ ОТПРАВКИ
+        // ИСПРАВЛЕННЫЙ БЛОК ДЛЯ MAIN BUTTON
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
 
@@ -602,15 +600,29 @@
             tg.MainButton.color = '#e6b980';
             tg.MainButton.textColor = '#1a0f2e';
             tg.MainButton.show();
-            tg.MainButton.onClick(sendToBot);
+
+            // 👇👇👇 КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ: используем новую функцию
+            tg.MainButton.offClick(sendAndClose);
+            tg.MainButton.onClick(sendAndClose);
 
             console.log('✅ MainButton показана');
         } else {
+            // Для тестирования в браузере
             setTimeout(sendToBot, 2000);
         }
     }
 
-    // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ sendToBot для 3 карт
+    // НОВАЯ ФУНКЦИЯ ДЛЯ ГАРАНТИРОВАННОЙ ОТПРАВКИ И ЗАКРЫТИЯ
+    function sendAndClose() {
+        sendToBot(); // Сначала отправляем данные
+        setTimeout(() => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.close(); // Затем закрываем Web App
+            }
+        }, 50); // Минимальный таймаут 50мс
+    }
+
+    // ИЗМЕНЕННАЯ ФУНКЦИЯ: УДАЛЕН tg.close()
     async function sendToBot() {
         console.log('🎴 sendToBot() вызвана');
 
@@ -620,11 +632,10 @@
         }
         dataSent = true;
 
-        // ✅ Преобразуем индексы (0-8) в позиции (1-9)
         const positionsForBot = selectedIndices.map(index => index + 1);
 
         const result = {
-            cards: positionsForBot // Отправляем массив под ключом 'cards'
+            cards: positionsForBot
         };
 
         console.log('📦 Данные для отправки:', result);
@@ -641,9 +652,8 @@
 
             console.log('📤 Отправляю через sendData:', jsonData);
 
-            tg.MainButton.hide();
             tg.sendData(jsonData);
-            tg.close(); // ✅ Закрываем Web App
+            // ❌ УДАЛЕНО: tg.close();
 
             console.log('✅ Данные отправлены');
 
