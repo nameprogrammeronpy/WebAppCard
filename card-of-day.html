@@ -4,183 +4,702 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Карта дня</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <link rel="preload" as="image" href="./assets/background.webp">
+    <link rel="preload" as="image" href="./assets/back.webp">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 100%);
-            min-height: 100vh;
+            background-image: url('./assets/background.webp'), url('./assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             font-family: 'Georgia', serif;
-            color: #e6b980;
-            padding: 20px;
+            overflow-x: hidden;
+            padding: 10px;
+            touch-action: manipulation;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
         }
 
         .container {
             text-align: center;
-            max-width: 500px;
+            position: relative;
             width: 100%;
+            max-width: 600px;
+            padding: 0 15px;
         }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(230, 185, 128, 0.8);
+        @media (min-width: 768px) {
+            .container {
+                max-width: 550px;
+            }
         }
+
+        .title {
+            color: #e6b980;
+            font-size: 22px;
+            margin-bottom: 30px;
+            text-shadow:
+                0 0 20px rgba(230, 185, 128, 0.8),
+                0 0 30px rgba(0, 0, 0, 0.8),
+                2px 2px 4px rgba(0, 0, 0, 1);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @media (min-width: 768px) {
+            .title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .shuffle-area {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 20px;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            .shuffle-area {
+                height: 220px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .shuffle-area.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .shuffle-card {
+            position: absolute;
+            width: 100px;
+            height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            background: url('./assets/back.webp') center/cover,
+                        url('./assets/back.jpg') center/cover,
+                        linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
+            border: 2px solid #8b6f47;
+            left: 50%;
+            top: 50%;
+        }
+
+        @media (min-width: 768px) {
+            .shuffle-card {
+                width: 70px;
+                height: 105px;
+            }
+        }
+
+        @keyframes shuffle1 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(-120%, -80%) rotate(-25deg); opacity: 0.8; }
+        }
+        @keyframes shuffle2 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(20%, -70%) rotate(35deg); opacity: 0.8; }
+        }
+        @keyframes shuffle3 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(-80%, 20%) rotate(-40deg); opacity: 0.8; }
+        }
+        @keyframes shuffle4 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(40%, 25%) rotate(28deg); opacity: 0.8; }
+        }
+        @keyframes shuffle5 {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 1; }
+            50% { transform: translate(0%, -100%) rotate(-15deg); opacity: 0.8; }
+        }
+
+        .shuffle-card:nth-child(1) { animation: shuffle1 1.2s linear infinite; animation-delay: -0s; }
+        .shuffle-card:nth-child(2) { animation: shuffle2 1.2s linear infinite; animation-delay: -0.24s; }
+        .shuffle-card:nth-child(3) { animation: shuffle3 1.2s linear infinite; animation-delay: -0.48s; }
+        .shuffle-card:nth-child(4) { animation: shuffle4 1.2s linear infinite; animation-delay: -0.72s; }
+        .shuffle-card:nth-child(5) { animation: shuffle5 1.2s linear infinite; animation-delay: -0.96s; }
 
         .grid {
-            display: grid;
+            display: none;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            perspective: 1000px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            max-width: 100%;
         }
 
-        .card {
+        @media (min-width: 768px) {
+            .grid {
+                gap: 10px;
+            }
+        }
+
+        .grid.show {
+            display: grid;
+            opacity: 1;
+        }
+
+        .card-container {
+            width: 100%;
             aspect-ratio: 2/3;
-            background: linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
-            border: 2px solid #8b6f47;
-            border-radius: 8px;
+            position: relative;
             cursor: pointer;
-            transition: all 0.3s;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            touch-action: manipulation;
+        }
+
+        .card-container.disabled {
+            pointer-events: none;
+        }
+
+        .card-container.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-container.selected {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .card-container.locked {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotateY(180deg); }
+            50% { transform: scale(1.05) rotateY(180deg); }
+        }
+
+        .card-back, .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            border: 2px solid #8b6f47;
+        }
+
+        .card-back {
+            background: url('./assets/back.webp') center/cover,
+                        url('./assets/back.jpg') center/cover,
+                        linear-gradient(135deg, #2d1b4e 0%, #1a0f2e 100%);
+            transition: all 0.3s ease;
+        }
+
+        .card-container:not(.disabled):hover .card-back {
+            box-shadow: 0 10px 30px rgba(230, 185, 128, 0.6);
+            border-color: #e6b980;
+        }
+
+        .card-front {
+            background: #000;
+            transform: rotateY(180deg);
             position: relative;
+            overflow: hidden;
         }
 
-        .card:hover {
-            transform: scale(1.05);
-            border-color: #e6b980;
-            box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
         }
 
-        .card.selected {
-            background: linear-gradient(135deg, #4a2c5e 0%, #3d2050 100%);
+        .card-container.selected .card-front {
+            box-shadow:
+                0 0 30px rgba(230, 185, 128, 0.9),
+                0 0 50px rgba(230, 185, 128, 0.6);
             border-color: #e6b980;
-            box-shadow: 0 0 30px rgba(230, 185, 128, 0.9);
         }
 
         .card-number {
             position: absolute;
-            bottom: 8px;
+            bottom: 5px;
             right: 8px;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 4px 8px;
-            border-radius: 4px;
+            color: #e6b980;
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
         .message {
+            color: #e6b980;
             font-size: 18px;
-            margin-bottom: 20px;
-            min-height: 30px;
+            margin-top: 20px;
+            min-height: 25px;
+            animation: fadeIn 0.5s ease-in;
+            text-shadow:
+                0 0 10px rgba(230, 185, 128, 0.8),
+                2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        button {
-            background: #e6b980;
-            color: #1a0f2e;
-            border: none;
-            padding: 15px 40px;
+        @media (min-width: 768px) {
+            .message {
+                font-size: 16px;
+                margin-top: 15px;
+            }
+        }
+
+        .message.success {
             font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s;
+            text-shadow:
+                0 0 15px rgba(230, 185, 128, 1),
+                0 0 30px rgba(230, 185, 128, 0.8);
         }
 
-        button:hover {
-            background: #d4a770;
-            transform: scale(1.05);
+        @media (min-width: 768px) {
+            .message.success {
+                font-size: 16px;
+            }
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #e6b980;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkleFloat 2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(230, 185, 128, 0.8);
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
+            50% { opacity: 1; transform: translateY(-40px) scale(1); }
+        }
+
+        .final-screen {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .final-screen.show {
+            display: block;
+        }
+
+        .final-screen h2 {
+            color: #e6b980;
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow:
+                0 0 20px rgba(230, 185, 128, 1),
+                0 0 30px rgba(230, 185, 128, 0.6),
+                2px 2px 4px rgba(0, 0, 0, 1);
+        }
+
+        @media (min-width: 768px) {
+            .final-screen h2 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .selected-cards-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px auto;
+            max-width: min(90vw, 400px);
+        }
+
+        @media (min-width: 768px) {
+            .selected-cards-display {
+                max-width: 220px;
+                margin: 20px auto;
+            }
+        }
+
+        .mini-card {
+            width: clamp(140px, 35vw, 200px);
+            height: auto;
+            aspect-ratio: 2/3;
+            border-radius: 8px;
+            border: 2px solid #e6b980;
+            box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
+            overflow: hidden;
+            background: #000;
+        }
+
+        @media (min-width: 768px) {
+            .mini-card {
+                width: 200px;
+            }
+        }
+
+        .mini-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>☀️ Выбери карту дня ☀️</h1>
+        <h1 class="title" id="title">✨ Перетасовываю карты... ✨</h1>
+
+        <div class="shuffle-area" id="shuffleArea">
+            <div class="shuffle-card"></div>
+            <div class="shuffle-card"></div>
+            <div class="shuffle-card"></div>
+            <div class="shuffle-card"></div>
+            <div class="shuffle-card"></div>
+        </div>
 
         <div class="grid" id="grid"></div>
 
-        <div class="message" id="message">Слушай сердцем...</div>
+        <div class="final-screen" id="finalScreen">
+            <h2>✨ Твоя карта дня ✨</h2>
+            <div class="selected-cards-display" id="selectedCardsDisplay"></div>
+            <p class="message">Отправляю результат тёте Зине...</p>
+        </div>
 
-        <button id="sendBtn" disabled>✨ Отправить ✨</button>
+        <div class="message" id="message"></div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+        const TOTAL_CARDS = 78;
+        const CARDS_TO_SHOW = 9;
+        const SHUFFLE_DURATION = 2500;
 
-        const TOTAL_CARDS = 9;
+        const CARD_IMAGES = [
+            '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
+            '4_emperor.webp', '5_hierophant.webp', '6_lovers.webp', '7_chariot.webp',
+            '8_strength.webp', '9_hermit.webp', '10_wheel_of_fortune.webp', '11_justice.webp',
+            '12_hanged_man.webp', '13_death.webp', '14_temperance.webp', '15_devil.webp',
+            '16_tower.webp', '17_star.webp', '18_moon.webp', '19_sun.webp',
+            '20_judgement.webp', '21_world.webp',
+            'swords_ace.webp', 'swords_king.webp', 'swords_queen.webp', 'swords_knight.webp',
+            'swords_page.webp', 'swords_2.webp', 'swords_3.webp', 'swords_4.webp',
+            'swords_5.webp', 'swords_6.webp', 'swords_7.webp', 'swords_8.webp',
+            'swords_9.webp', 'swords_10.webp',
+            'cups_ace.webp', 'cups_king.webp', 'cups_queen.webp', 'cups_knight.webp',
+            'cups_page.webp', 'cups_2.webp', 'cups_3.webp', 'cups_4.webp',
+            'cups_5.webp', 'cups_6.webp', 'cups_7.webp', 'cups_8.webp',
+            'cups_9.webp', 'cups_10.webp',
+            'wands_ace.webp', 'wands_king.webp', 'wands_queen.webp', 'wands_knight.webp',
+            'wands_page.webp', 'wands_2.webp', 'wands_3.webp', 'wands_4.webp',
+            'wands_5.webp', 'wands_6.webp', 'wands_7.webp', 'wands_8.webp',
+            'wands_9.webp', 'wands_10.webp',
+            'pentacles_ace.webp', 'pentacles_king.webp', 'pentacles_queen.webp', 'pentacles_knight.webp',
+            'pentacles_page.webp', 'pentacles_2.webp', 'pentacles_3.webp', 'pentacles_4.webp',
+            'pentacles_5.webp', 'pentacles_6.webp', 'pentacles_7.webp', 'pentacles_8.webp',
+            'pentacles_9.webp', 'pentacles_10.webp'
+        ];
+
+        const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
+
+        let selectedGrid = [];
         let selectedCard = null;
+        let selectedIndex = null;
+        let isLocked = false;
+        let cardsInteractionEnabled = false;
 
-        const grid = document.getElementById('grid');
-        const message = document.getElementById('message');
-        const sendBtn = document.getElementById('sendBtn');
-
-        // Создаём сетку карт
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                🔮
-                <span class="card-number">${i}</span>
-            `;
-            card.addEventListener('click', () => selectCard(i, card));
-            grid.appendChild(card);
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
         }
 
-        function selectCard(number, element) {
-            // Снимаем выделение с предыдущей карты
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-
-            // Выделяем новую карту
-            selectedCard = number;
-            element.classList.add('selected');
-
-            message.textContent = '✨ Готово! Отправляй результат';
-            sendBtn.disabled = false;
+        function selectRandomCards() {
+            const shuffled = shuffleArray(ALL_CARDS);
+            selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
+            console.log('Выбранные карты для сетки:', selectedGrid);
         }
 
-        sendBtn.addEventListener('click', async () => {
-            if (!selectedCard) {
-                alert('Выбери карту!');
+        function getCardImagePath(cardId) {
+            return `./assets/cards/${CARD_IMAGES[cardId]}`;
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            selectedGrid.forEach((cardId, index) => {
+                const container = document.createElement('div');
+                container.className = 'card-container disabled';
+                container.dataset.index = index;
+                container.dataset.cardId = cardId;
+
+                const back = document.createElement('div');
+                back.className = 'card-back';
+
+                const front = document.createElement('div');
+                front.className = 'card-front';
+
+                const img = document.createElement('img');
+                img.src = getCardImagePath(cardId);
+                img.alt = `Карта ${cardId + 1}`;
+                img.loading = 'lazy';
+
+                img.onerror = function() {
+                    console.error(`Не удалось загрузить карту: ${cardId}`);
+                    this.style.display = 'none';
+                    front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
+                    front.textContent = '🔮';
+                    front.style.fontSize = '48px';
+                };
+
+                front.appendChild(img);
+
+                const number = document.createElement('span');
+                number.className = 'card-number';
+                number.textContent = index + 1;
+                front.appendChild(number);
+
+                container.appendChild(back);
+                container.appendChild(front);
+
+                container.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (cardsInteractionEnabled) {
+                        handleCardClick(container, index, cardId);
+                    }
+                });
+
+                container.addEventListener('touchstart', (e) => {
+                    if (!cardsInteractionEnabled) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
+
+                grid.appendChild(container);
+            });
+        }
+
+        function handleCardClick(container, index, cardId) {
+            if (isLocked || !cardsInteractionEnabled) return;
+
+            if (selectedIndex !== null && selectedIndex !== index) {
+                const prevCard = document.querySelector(`[data-index="${selectedIndex}"]`);
+                if (prevCard) {
+                    prevCard.classList.remove('flipped', 'selected');
+                }
+            }
+
+            const alreadySelected = selectedIndex === index;
+
+            if (alreadySelected) {
+                container.classList.remove('flipped', 'selected');
+                selectedIndex = null;
+                selectedCard = null;
+            } else {
+                container.classList.add('flipped');
+                setTimeout(() => {
+                    container.classList.add('selected');
+                }, 300);
+
+                selectedIndex = index;
+                selectedCard = cardId;
+
+                isLocked = true;
+                cardsInteractionEnabled = false;
+
+                setTimeout(finishSelection, 800);
+            }
+
+            updateMessage();
+        }
+
+        function updateMessage() {
+            const message = document.getElementById('message');
+
+            if (selectedCard === null) {
+                message.textContent = 'Слушай сердцем... Выбери свою карту';
+            } else {
+                message.textContent = '';
+            }
+        }
+
+        function finishSelection() {
+            document.querySelectorAll('.card-container').forEach(card => {
+                if (parseInt(card.dataset.index) !== selectedIndex) {
+                    card.classList.add('locked');
+                }
+                card.classList.add('disabled');
+            });
+
+            document.getElementById('message').textContent = '✨ Готово! ✨';
+            document.getElementById('message').classList.add('success');
+
+            setTimeout(showFinalScreen, 1000);
+        }
+
+        function showFinalScreen() {
+            document.getElementById('grid').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('title').style.display = 'none';
+
+            const finalScreen = document.getElementById('finalScreen');
+            const display = document.getElementById('selectedCardsDisplay');
+
+            const miniCard = document.createElement('div');
+            miniCard.className = 'mini-card';
+
+            const img = document.createElement('img');
+            img.src = getCardImagePath(selectedCard);
+            img.alt = `Выбранная карта`;
+
+            miniCard.appendChild(img);
+            display.appendChild(miniCard);
+
+            finalScreen.classList.add('show');
+
+            setTimeout(sendToBot, 2000);
+        }
+        let dataSent = false;
+        async function sendToBot() {
+            if (dataSent) {
+                console.log('⚠️ Данные уже отправлены');
+                return;
+            }
+            dataSent = true;
+
+            const positionForBot = selectedIndex + 1;
+
+            const result = {
+                card: positionForBot
+            };
+
+            console.log('🎴 Отправка данных в бота:', result);
+
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                console.error('❌ Telegram WebApp не доступен!');
+                alert('Выбрана карта: ' + positionForBot);
                 return;
             }
 
-            console.log('📤 Отправляю карту:', selectedCard);
-
-            const data = {
-                card: selectedCard
-            };
-
             try {
-                tg.sendData(JSON.stringify(data));
-                console.log('✅ Данные отправлены');
+                const tg = window.Telegram.WebApp;
+                const jsonData = JSON.stringify(result);
 
-                // Задержка перед закрытием
+                console.log('📤 Отправляю JSON:', jsonData);
+
+                // ✅ СНАЧАЛА ОТПРАВЛЯЕМ
+                tg.sendData(jsonData);
+
+                // ✅ ПРИНУДИТЕЛЬНО ЖДЁМ 300ms (для нативного моста)
                 await new Promise(resolve => setTimeout(resolve, 300));
 
+                console.log('✅ Закрываю WebApp');
                 tg.close();
+
             } catch (e) {
                 console.error('❌ Ошибка:', e);
-                alert('Ошибка отправки: ' + e.message);
+                alert('Ошибка: ' + e.message);
             }
-        });
+        }
 
-        console.log('✅ WebApp инициализирован');
+        function createSparkles() {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = Math.random() * 100 + '%';
+                    sparkle.style.top = Math.random() * 100 + '%';
+                    sparkle.style.animationDelay = Math.random() * 2 + 's';
+                    document.body.appendChild(sparkle);
+
+                    setTimeout(() => sparkle.remove(), 2000);
+                }, i * 100);
+            }
+        }
+
+        function enableCardsInteraction() {
+            cardsInteractionEnabled = true;
+            document.querySelectorAll('.card-container').forEach(card => {
+                card.classList.remove('disabled');
+            });
+            console.log('✅ Карты активированы');
+        }
+
+        function init() {
+            console.log('🎴 Инициализация WebApp');
+
+            selectRandomCards();
+            createGrid();
+
+            setTimeout(() => {
+                const shuffleArea = document.getElementById('shuffleArea');
+                shuffleArea.classList.add('hidden');
+
+                setTimeout(() => {
+                    shuffleArea.style.display = 'none';
+                    document.getElementById('title').textContent = '🎴 Выбери свою карту дня 🎴';
+
+                    const grid = document.getElementById('grid');
+                    grid.classList.add('show');
+                    updateMessage();
+
+                    setTimeout(() => {
+                        enableCardsInteraction();
+                    }, 800);
+                }, 500);
+            }, SHUFFLE_DURATION);
+
+            createSparkles();
+            setInterval(createSparkles, 3000);
+        }
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.enableClosingConfirmation();
+            tg.ready();
+            console.log('✅ Telegram WebApp готов');
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
