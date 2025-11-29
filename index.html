@@ -611,6 +611,8 @@
 
         async function sendToBot() {
             console.log('📤 sendToBot() вызвана');
+            console.log('🌐 Telegram WebApp доступен:', !!window.Telegram?.WebApp);
+            console.log('🔑 initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
 
             if (dataSent) {
                 console.log('⚠️ Данные уже отправлены');
@@ -618,6 +620,7 @@
             }
             dataSent = true;
 
+            // 🔥 ПОЗИЦИИ КАРТ (1-9) для бота
             const positionsForBot = selectedIndices.map(i => i + 1);
 
             const result = {
@@ -625,10 +628,12 @@
             };
 
             console.log('📦 Финальные данные для отправки:', result);
+            console.log('🎯 Selected indices:', selectedIndices);
+            console.log('🎴 Selected card IDs:', selectedCards);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('❌ Telegram WebApp недоступен!');
-                alert('Выбраны карты: ' + positionsForBot.join(', '));
+                alert('⚠️ WebApp не инициализирован!\n\nВыбраны карты: ' + positionsForBot.join(', '));
                 return;
             }
 
@@ -637,17 +642,23 @@
                 const jsonData = JSON.stringify(result);
 
                 console.log('📤 Отправляю JSON через sendData:', jsonData);
+                console.log('🔍 Длина JSON:', jsonData.length);
 
+                // 🔥 КРИТИЧНО: sendData БЕЗ await
                 tg.sendData(jsonData);
 
-                await new Promise(resolve => setTimeout(resolve, 300));
+                console.log('✅ sendData() вызван');
 
-                console.log('✅ Закрываю WebApp');
+                // 🔥 ВАЖНО: Ждём 500мс ДО закрытия
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                console.log('🚪 Закрываю WebApp...');
                 tg.close();
 
             } catch (e) {
                 console.error('❌ Ошибка отправки:', e);
-                alert('Ошибка: ' + e.message + '\n\nВыбраны карты: ' + positionsForBot.join(', '));
+                console.error('Stack trace:', e.stack);
+                alert('❌ Ошибка: ' + e.message + '\n\nВыбраны карты: ' + positionsForBot.join(', '));
             }
         }
 
