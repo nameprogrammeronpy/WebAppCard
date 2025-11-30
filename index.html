@@ -609,43 +609,17 @@
             setTimeout(sendToBot, 2000);
         }
 
-        async function sendToBot() {
-            console.log('📤 sendToBot() вызвана');
+        function sendToBot() {
+            console.log('📤 sendToBot START');
 
-            if (dataSent) {
-                console.log('⚠️ Данные уже отправлены');
-                return;
-            }
-            dataSent = true;
+            const positions = selectedIndices.map(i => i + 1);
+            const data = JSON.stringify({ cards: positions });
 
-            const positionsForBot = selectedIndices.map(i => i + 1);
+            console.log('📦 Data:', data);
 
-            const result = {
-                cards: positionsForBot
-            };
+            window.Telegram.WebApp.sendData(data);
 
-            console.log('📦 Отправка:', result);
-
-            if (!window.Telegram || !window.Telegram.WebApp) {
-                console.error('❌ Telegram WebApp недоступен!');
-                alert('WebApp недоступен');
-                return;
-            }
-
-            try {
-                const tg = window.Telegram.WebApp;
-                const jsonData = JSON.stringify(result);
-
-                console.log('📤 sendData:', jsonData);
-
-                tg.sendData(jsonData);
-
-                console.log('✅ Данные отправлены');
-
-            } catch (e) {
-                console.error('❌ Ошибка:', e);
-                alert('Ошибка: ' + e.message);
-            }
+            console.log('✅ sendData called');
         }
 
 
