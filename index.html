@@ -649,11 +649,7 @@
 
                 console.log('✅ sendData() вызван');
 
-                // 🔥 ВАЖНО: Ждём 500мс ДО закрытия
-                await new Promise(resolve => setTimeout(resolve, 500));
 
-                console.log('🚪 Закрываю WebApp...');
-                tg.close();
 
             } catch (e) {
                 console.error('❌ Ошибка отправки:', e);
