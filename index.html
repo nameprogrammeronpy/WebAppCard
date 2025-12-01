@@ -520,16 +520,19 @@
 
         function handleCardClick(container, index, cardId) {
             if (isLocked || !cardsInteractionEnabled) {
+                console.log('⚠️ Карты заблокированы');
                 return;
             }
 
             const alreadySelected = selectedIndices.includes(index);
 
             if (alreadySelected) {
+                console.log(`🔄 Отмена выбора карты ${index + 1}`);
                 container.classList.remove('flipped', 'selected');
                 selectedIndices = selectedIndices.filter(i => i !== index);
                 selectedCards = selectedCards.filter(c => c !== cardId);
             } else if (selectedCards.length < CARDS_TO_SELECT) {
+                console.log(`✅ Выбрана карта ${index + 1} (ID: ${cardId})`);
                 container.classList.add('flipped');
                 setTimeout(() => {
                     container.classList.add('selected');
@@ -539,22 +542,12 @@
                 selectedCards.push(cardId);
             }
 
+            console.log('📊 Текущий выбор:', selectedCards, selectedIndices);
             updateMessage();
 
-            // 🔥 СРАЗУ ОТПРАВЛЯЕМ ПОСЛЕ 3-Й КАРТЫ!
             if (selectedCards.length === CARDS_TO_SELECT) {
-                isLocked = true;
-                cardsInteractionEnabled = false;
-
-                document.getElementById('message').textContent = '✨ Готово! ✨';
-
-                // 🔥 ОТПРАВКА БЕЗ ЗАДЕРЖКИ!
-                const positions = selectedIndices.map(i => i + 1);
-                const data = JSON.stringify({ cards: positions });
-
-                console.log('📤 Отправка:', data);
-
-                window.Telegram.WebApp.sendData(data);
+                console.log('🎉 Все 3 карты выбраны!');
+                setTimeout(finishSelection, 800);
             }
         }
 
@@ -571,6 +564,103 @@
             }
         }
 
+        function finishSelection() {
+            console.log('🔒 Блокирую карты');
+            isLocked = true;
+            cardsInteractionEnabled = false;
+
+            document.querySelectorAll('.card-container').forEach(card => {
+                if (!selectedIndices.includes(parseInt(card.dataset.index))) {
+                    card.classList.add('locked');
+                }
+                card.classList.add('disabled');
+            });
+
+            document.getElementById('message').textContent = '✨ Готово! ✨';
+            document.getElementById('message').classList.add('success');
+
+            setTimeout(showFinalScreen, 1000);
+        }
+
+        function showFinalScreen() {
+            console.log('🎬 Показываю финальный экран');
+
+            document.getElementById('grid').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('title').classList.add('hidden');
+
+            const finalScreen = document.getElementById('finalScreen');
+            const display = document.getElementById('selectedCardsDisplay');
+
+            selectedCards.forEach((cardId, idx) => {
+                const miniCard = document.createElement('div');
+                miniCard.className = 'mini-card';
+
+                const img = document.createElement('img');
+                img.src = getCardImagePath(cardId);
+                img.alt = `Выбранная карта ${idx + 1}`;
+
+                miniCard.appendChild(img);
+                display.appendChild(miniCard);
+            });
+
+            finalScreen.classList.add('show');
+
+            setTimeout(sendToBot, 2000);
+        }
+
+        async function sendToBot() {
+            console.log('📤 sendToBot() вызвана');
+            console.log('🌐 Telegram WebApp доступен:', !!window.Telegram?.WebApp);
+            console.log('🔑 initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
+
+            if (dataSent) {
+                console.log('⚠️ Данные уже отправлены');
+                return;
+            }
+            dataSent = true;
+
+            // 🔥 ПОЗИЦИИ КАРТ (1-9) для бота
+            const positionsForBot = selectedIndices.map(i => i + 1);
+
+            const result = {
+                cards: positionsForBot
+            };
+
+            console.log('📦 Финальные данные для отправки:', result);
+            console.log('🎯 Selected indices:', selectedIndices);
+            console.log('🎴 Selected card IDs:', selectedCards);
+
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                console.error('❌ Telegram WebApp недоступен!');
+                alert('⚠️ WebApp не инициализирован!\n\nВыбраны карты: ' + positionsForBot.join(', '));
+                return;
+            }
+
+            try {
+                const tg = window.Telegram.WebApp;
+                const jsonData = JSON.stringify(result);
+
+                console.log('📤 Отправляю JSON через sendData:', jsonData);
+                console.log('🔍 Длина JSON:', jsonData.length);
+
+                // 🔥 КРИТИЧНО: sendData БЕЗ await
+                tg.sendData(jsonData);
+
+                console.log('✅ sendData() вызван');
+
+                // 🔥 ВАЖНО: Ждём 500мс ДО закрытия
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                console.log('🚪 Закрываю WebApp...');
+                tg.close();
+
+            } catch (e) {
+                console.error('❌ Ошибка отправки:', e);
+                console.error('Stack trace:', e.stack);
+                alert('❌ Ошибка: ' + e.message + '\n\nВыбраны карты: ' + positionsForBot.join(', '));
+            }
+        }
 
         function createSparkles() {
             for (let i = 0; i < 10; i++) {
