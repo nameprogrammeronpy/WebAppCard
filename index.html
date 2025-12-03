@@ -8,7 +8,7 @@
     <link rel="preload" as="image" href="./assets/back.webp">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ВСЕ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ */
+        /* ВСЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ */
         * {
             margin: 0;
             padding: 0;
@@ -51,12 +51,6 @@
             padding: 0 15px;
         }
 
-        @media (min-width: 768px) {
-            .container {
-                max-width: 550px;
-            }
-        }
-
         .title {
             color: #e6b980;
             font-size: 26px;
@@ -68,17 +62,6 @@
             animation: fadeIn 0.5s ease-in;
         }
 
-        @media (min-width: 768px) {
-            .title {
-                font-size: 22px;
-                margin-bottom: 20px;
-            }
-        }
-
-        .title.hidden {
-            display: none;
-        }
-
         .shuffle-area {
             position: relative;
             height: 300px;
@@ -86,13 +69,6 @@
             margin-bottom: 20px;
             opacity: 1;
             transition: opacity 0.5s ease-out;
-        }
-
-        @media (min-width: 768px) {
-            .shuffle-area {
-                height: 220px;
-                margin-bottom: 15px;
-            }
         }
 
         .shuffle-area.hidden {
@@ -112,13 +88,6 @@
             border: 2px solid #8b6f47;
             left: 50%;
             top: 50%;
-        }
-
-        @media (min-width: 768px) {
-            .shuffle-card {
-                width: 70px;
-                height: 105px;
-            }
         }
 
         @keyframes shuffle1 {
@@ -156,12 +125,6 @@
             opacity: 0;
             transition: opacity 0.5s ease-in;
             max-width: 100%;
-        }
-
-        @media (min-width: 768px) {
-            .grid {
-                gap: 10px;
-            }
         }
 
         .grid.show {
@@ -271,13 +234,6 @@
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        @media (min-width: 768px) {
-            .message {
-                font-size: 16px;
-                margin-top: 15px;
-            }
-        }
-
         .message.success {
             font-size: 18px;
             font-weight: bold;
@@ -286,31 +242,9 @@
                 0 0 30px rgba(230, 185, 128, 0.8);
         }
 
-        @media (min-width: 768px) {
-            .message.success {
-                font-size: 16px;
-            }
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .sparkle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #e6b980;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: sparkleFloat 2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(230, 185, 128, 0.8);
-        }
-
-        @keyframes sparkleFloat {
-            0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
-            50% { opacity: 1; transform: translateY(-40px) scale(1); }
         }
 
         .final-screen {
@@ -333,25 +267,11 @@
                 2px 2px 4px rgba(0, 0, 0, 1);
         }
 
-        @media (min-width: 768px) {
-            .final-screen h2 {
-                font-size: 20px;
-                margin-bottom: 15px;
-            }
-        }
-
         .selected-cards-display {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin: 30px 0;
-        }
-
-        @media (min-width: 768px) {
-            .selected-cards-display {
-                gap: 10px;
-                margin: 20px 0;
-            }
         }
 
         .mini-card {
@@ -362,13 +282,6 @@
             box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
             overflow: hidden;
             background: #000;
-        }
-
-        @media (min-width: 768px) {
-            .mini-card {
-                width: 65px;
-                height: 97px;
-            }
         }
 
         .mini-card img {
@@ -405,6 +318,7 @@
         const CARDS_TO_SELECT = 3;
         const SHUFFLE_DURATION = 2500;
 
+        // ✅ ВСЕ 78 КАРТ
         const CARD_IMAGES = [
             '0_fool.webp', '1_magician.webp', '2_high_priestess.webp', '3_empress.webp',
             '4_emperor.webp', '5_hierophant.webp', '6_lovers.webp', '7_chariot.webp',
@@ -430,42 +344,45 @@
             'pentacles_9.webp', 'pentacles_10.webp'
         ];
 
-        // ✅ ИСПРАВЛЕНО: Берём карты из URL параметров
+        // 🔥 WEBAPP САМ ГЕНЕРИРУЕТ 9 СЛУЧАЙНЫХ КАРТ!
         let selectedGrid = [];
         let selectedCards = [];
-        let selectedIndices = [];
         let isLocked = false;
         let cardsInteractionEnabled = false;
         let dataSent = false;
 
-        function getCardsFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const cardsParam = params.get('cards');
+        // ✅ ГЕНЕРАЦИЯ СЛУЧАЙНЫХ КАРТ
+        function generateRandomCards() {
+            const allIndices = Array.from({length: 78}, (_, i) => i);
 
-            if (cardsParam) {
-                // Преобразуем "5,12,34,67,23,45,1,9,77" в [5, 12, 34, 67, 23, 45, 1, 9, 77]
-                selectedGrid = cardsParam.split(',').map(Number);
-                console.log('✅ Карты получены из URL:', selectedGrid);
-                return true;
+            // Перемешиваем (Fisher-Yates)
+            for (let i = allIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
             }
 
-            console.error('❌ Карты не переданы через URL!');
-            return false;
+            // Берём первые 9
+            selectedGrid = allIndices.slice(0, 9);
+            console.log('🎴 Сгенерированные карты:', selectedGrid);
         }
 
-        function getCardImagePath(cardId) {
-            return `./assets/cards/${CARD_IMAGES[cardId]}`;
+        function getCardImagePath(cardIndex) {
+            return `./assets/cards/${CARD_IMAGES[cardIndex]}`;
+        }
+
+        function getCardName(cardIndex) {
+            return CARD_IMAGES[cardIndex].replace('.webp', '');
         }
 
         function createGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
 
-            selectedGrid.forEach((cardId, index) => {
+            selectedGrid.forEach((cardIndex, position) => {
                 const container = document.createElement('div');
                 container.className = 'card-container disabled';
-                container.dataset.index = index;
-                container.dataset.cardId = cardId;
+                container.dataset.position = position;
+                container.dataset.cardIndex = cardIndex;
 
                 const back = document.createElement('div');
                 back.className = 'card-back';
@@ -474,12 +391,12 @@
                 front.className = 'card-front';
 
                 const img = document.createElement('img');
-                img.src = getCardImagePath(cardId);
-                img.alt = `Карта ${cardId + 1}`;
+                img.src = getCardImagePath(cardIndex);
+                img.alt = `Карта ${position + 1}`;
                 img.loading = 'lazy';
 
                 img.onerror = function() {
-                    console.error(`❌ Не удалось загрузить карту: ${cardId}`);
+                    console.error(`❌ Не удалось загрузить карту: ${cardIndex}`);
                     this.style.display = 'none';
                     front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
                     front.textContent = '🔮';
@@ -490,7 +407,7 @@
 
                 const number = document.createElement('span');
                 number.className = 'card-number';
-                number.textContent = index + 1;
+                number.textContent = position + 1;
                 front.appendChild(number);
 
                 container.appendChild(back);
@@ -500,47 +417,39 @@
                     e.preventDefault();
                     e.stopPropagation();
                     if (cardsInteractionEnabled) {
-                        console.log(`🎴 Клик на карту ${index + 1}`);
-                        handleCardClick(container, index, cardId);
+                        console.log(`🎴 Клик на карту ${position + 1}`);
+                        handleCardClick(container, position, cardIndex);
                     }
                 });
-
-                container.addEventListener('touchstart', (e) => {
-                    if (!cardsInteractionEnabled) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }, { passive: false });
 
                 grid.appendChild(container);
             });
         }
 
-        function handleCardClick(container, index, cardId) {
+        function handleCardClick(container, position, cardIndex) {
             if (isLocked || !cardsInteractionEnabled) {
                 console.log('⚠️ Карты заблокированы');
                 return;
             }
 
-            const alreadySelected = selectedIndices.includes(index);
+            const cardName = getCardName(cardIndex);
+            const alreadySelected = selectedCards.includes(cardName);
 
             if (alreadySelected) {
-                console.log(`🔄 Отмена выбора карты ${index + 1}`);
+                console.log(`🔄 Отмена выбора карты ${cardName}`);
                 container.classList.remove('flipped', 'selected');
-                selectedIndices = selectedIndices.filter(i => i !== index);
-                selectedCards = selectedCards.filter(c => c !== cardId);
+                selectedCards = selectedCards.filter(c => c !== cardName);
             } else if (selectedCards.length < CARDS_TO_SELECT) {
-                console.log(`✅ Выбрана карта ${index + 1} (ID: ${cardId})`);
+                console.log(`✅ Выбрана карта ${cardName}`);
                 container.classList.add('flipped');
                 setTimeout(() => {
                     container.classList.add('selected');
                 }, 300);
 
-                selectedIndices.push(index);
-                selectedCards.push(cardId);
+                selectedCards.push(cardName);
             }
 
-            console.log('📊 Текущий выбор:', selectedCards, selectedIndices);
+            console.log('📊 Текущий выбор:', selectedCards);
             updateMessage();
 
             if (selectedCards.length === CARDS_TO_SELECT) {
@@ -568,7 +477,8 @@
             cardsInteractionEnabled = false;
 
             document.querySelectorAll('.card-container').forEach(card => {
-                if (!selectedIndices.includes(parseInt(card.dataset.index))) {
+                const cardName = getCardName(parseInt(card.dataset.cardIndex));
+                if (!selectedCards.includes(cardName)) {
                     card.classList.add('locked');
                 }
                 card.classList.add('disabled');
@@ -585,18 +495,20 @@
 
             document.getElementById('grid').style.display = 'none';
             document.getElementById('message').style.display = 'none';
-            document.getElementById('title').classList.add('hidden');
+            document.getElementById('title').style.display = 'none';
 
             const finalScreen = document.getElementById('finalScreen');
             const display = document.getElementById('selectedCardsDisplay');
 
-            selectedCards.forEach((cardId, idx) => {
+            selectedCards.forEach((cardName) => {
+                const cardIndex = CARD_IMAGES.findIndex(img => img.replace('.webp', '') === cardName);
+
                 const miniCard = document.createElement('div');
                 miniCard.className = 'mini-card';
 
                 const img = document.createElement('img');
-                img.src = getCardImagePath(cardId);
-                img.alt = `Выбранная карта ${idx + 1}`;
+                img.src = getCardImagePath(cardIndex);
+                img.alt = `Выбранная карта`;
 
                 miniCard.appendChild(img);
                 display.appendChild(miniCard);
@@ -616,20 +528,16 @@
             }
             dataSent = true;
 
-            // 🔥 ПОЗИЦИИ КАРТ (1-9) для бота
-            const positionsForBot = selectedIndices.map(i => i + 1);
-
+            // 🔥 ОТПРАВЛЯЕМ НАЗВАНИЯ КАРТ
             const result = {
-                cards: positionsForBot
+                cards: selectedCards  // ['5_hierophant', '12_hanged_man', '34_cups_5']
             };
 
-            console.log('📦 Финальные данные:', result);
-            console.log('🎯 Selected indices:', selectedIndices);
-            console.log('🎴 Selected card IDs:', selectedCards);
+            console.log('📦 Отправка данных:', result);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('❌ Telegram WebApp недоступен!');
-                alert('⚠️ WebApp не инициализирован!\n\nВыбраны карты: ' + positionsForBot.join(', '));
+                alert('⚠️ WebApp не инициализирован!\n\nВыбраны карты: ' + selectedCards.join(', '));
                 return;
             }
 
@@ -649,22 +557,7 @@
 
             } catch (e) {
                 console.error('❌ Ошибка отправки:', e);
-                alert('❌ Ошибка: ' + e.message + '\n\nВыбраны карты: ' + positionsForBot.join(', '));
-            }
-        }
-
-        function createSparkles() {
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => {
-                    const sparkle = document.createElement('div');
-                    sparkle.className = 'sparkle';
-                    sparkle.style.left = Math.random() * 100 + '%';
-                    sparkle.style.top = Math.random() * 100 + '%';
-                    sparkle.style.animationDelay = Math.random() * 2 + 's';
-                    document.body.appendChild(sparkle);
-
-                    setTimeout(() => sparkle.remove(), 2000);
-                }, i * 100);
+                alert('❌ Ошибка: ' + e.message + '\n\nВыбраны карты: ' + selectedCards.join(', '));
             }
         }
 
@@ -679,12 +572,8 @@
         function init() {
             console.log('🎴 Инициализация WebApp');
 
-            // ✅ КРИТИЧНО: Получаем карты из URL
-            if (!getCardsFromURL()) {
-                alert('❌ Ошибка: карты не переданы ботом!\n\nПопробуй перезапустить расклад.');
-                return;
-            }
-
+            // 🔥 ГЕНЕРИРУЕМ КАРТЫ ПРЯМО ЗДЕСЬ!
+            generateRandomCards();
             createGrid();
 
             setTimeout(() => {
@@ -704,9 +593,6 @@
                     }, 800);
                 }, 500);
             }, SHUFFLE_DURATION);
-
-            createSparkles();
-            setInterval(createSparkles, 3000);
         }
 
         if (window.Telegram && window.Telegram.WebApp) {
