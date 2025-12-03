@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Карта дня</title>
-
     <link rel="preload" as="image" href="./assets/background.webp">
     <link rel="preload" as="image" href="./assets/back.webp">
     <style>
+        /* ВСЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ - копируй из твоего файла */
         * {
             margin: 0;
             padding: 0;
@@ -398,8 +398,6 @@
     </div>
 
     <script>
-        const TOTAL_CARDS = 78;
-        const CARDS_TO_SHOW = 9;
         const SHUFFLE_DURATION = 2500;
 
         const CARD_IMAGES = [
@@ -427,27 +425,26 @@
             'pentacles_9.webp', 'pentacles_10.webp'
         ];
 
-        const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
-
+        // ✅ ИСПРАВЛЕНО: Берём карты из URL
         let selectedGrid = [];
         let selectedCard = null;
         let selectedIndex = null;
         let isLocked = false;
         let cardsInteractionEnabled = false;
+        let dataSent = false;
 
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        function getCardsFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const cardsParam = params.get('cards');
+
+            if (cardsParam) {
+                selectedGrid = cardsParam.split(',').map(Number);
+                console.log('✅ Карты получены из URL:', selectedGrid);
+                return true;
             }
-            return shuffled;
-        }
 
-        function selectRandomCards() {
-            const shuffled = shuffleArray(ALL_CARDS);
-            selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
-            console.log('Выбранные карты для сетки:', selectedGrid);
+            console.error('❌ Карты не переданы через URL!');
+            return false;
         }
 
         function getCardImagePath(cardId) {
@@ -592,7 +589,7 @@
 
             setTimeout(sendToBot, 2000);
         }
-        let dataSent = false;
+
         async function sendToBot() {
             if (dataSent) {
                 console.log('⚠️ Данные уже отправлены');
@@ -606,7 +603,7 @@
                 card: positionForBot
             };
 
-            console.log('🎴 Отправка данных в бота:', result);
+            console.log('🎴 Отправка данных:', result);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('❌ Telegram WebApp не доступен!');
@@ -620,10 +617,8 @@
 
                 console.log('📤 Отправляю JSON:', jsonData);
 
-                // ✅ СНАЧАЛА ОТПРАВЛЯЕМ
                 tg.sendData(jsonData);
 
-                // ✅ ПРИНУДИТЕЛЬНО ЖДЁМ 300ms (для нативного моста)
                 await new Promise(resolve => setTimeout(resolve, 300));
 
                 console.log('✅ Закрываю WebApp');
@@ -661,7 +656,12 @@
         function init() {
             console.log('🎴 Инициализация WebApp');
 
-            selectRandomCards();
+            // ✅ КРИТИЧНО: Получаем карты из URL
+            if (!getCardsFromURL()) {
+                alert('❌ Ошибка: карты не переданы ботом!\n\nПопробуй перезапустить расклад.');
+                return;
+            }
+
             createGrid();
 
             setTimeout(() => {
