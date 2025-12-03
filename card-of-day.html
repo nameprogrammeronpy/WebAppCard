@@ -597,17 +597,19 @@
             }
             dataSent = true;
 
-            const positionForBot = selectedIndex + 1;
+            // ✅ ОТПРАВЛЯЕМ НАЗВАНИЕ КАРТЫ (БЕЗ .webp)
+            const cardName = CARD_IMAGES[selectedCard].replace('.webp', '');
 
             const result = {
-                card: positionForBot
+                card: cardName
             };
 
             console.log('🎴 Отправка данных:', result);
+            console.log('📝 Card name:', cardName);
 
             if (!window.Telegram || !window.Telegram.WebApp) {
                 console.error('❌ Telegram WebApp не доступен!');
-                alert('Выбрана карта: ' + positionForBot);
+                alert('Выбрана карта: ' + cardName);
                 return;
             }
 
