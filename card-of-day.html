@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Карта дня</title>
+    <title>Выбор карт Таро</title>
     <link rel="preload" as="image" href="./assets/background.webp">
     <link rel="preload" as="image" href="./assets/back.webp">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ВСЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ - копируй из твоего файла */
         * {
             margin: 0;
             padding: 0;
@@ -26,7 +26,7 @@
             align-items: center;
             min-height: 100vh;
             font-family: 'Georgia', serif;
-            overflow-x: hidden;
+            overflow: hidden;
             padding: 10px;
             touch-action: manipulation;
         }
@@ -58,7 +58,7 @@
 
         .title {
             color: #e6b980;
-            font-size: 22px;
+            font-size: 26px;
             margin-bottom: 30px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 0.8),
@@ -69,9 +69,13 @@
 
         @media (min-width: 768px) {
             .title {
-                font-size: 20px;
+                font-size: 22px;
                 margin-bottom: 20px;
             }
+        }
+
+        .title.hidden {
+            display: none;
         }
 
         .shuffle-area {
@@ -146,7 +150,7 @@
         .grid {
             display: none;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 15px;
             perspective: 1000px;
             opacity: 0;
             transition: opacity 0.5s ease-in;
@@ -321,7 +325,7 @@
         .final-screen h2 {
             color: #e6b980;
             font-size: 24px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-shadow:
                 0 0 20px rgba(230, 185, 128, 1),
                 0 0 30px rgba(230, 185, 128, 0.6),
@@ -331,7 +335,7 @@
         @media (min-width: 768px) {
             .final-screen h2 {
                 font-size: 20px;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
         }
 
@@ -339,21 +343,19 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin: 30px auto;
-            max-width: min(90vw, 400px);
+            margin: 30px 0;
         }
 
         @media (min-width: 768px) {
             .selected-cards-display {
-                max-width: 220px;
-                margin: 20px auto;
+                gap: 10px;
+                margin: 20px 0;
             }
         }
 
         .mini-card {
-            width: clamp(140px, 35vw, 200px);
-            height: auto;
-            aspect-ratio: 2/3;
+            width: 80px;
+            height: 120px;
             border-radius: 8px;
             border: 2px solid #e6b980;
             box-shadow: 0 0 20px rgba(230, 185, 128, 0.6);
@@ -363,7 +365,8 @@
 
         @media (min-width: 768px) {
             .mini-card {
-                width: 200px;
+                width: 65px;
+                height: 97px;
             }
         }
 
@@ -389,7 +392,7 @@
         <div class="grid" id="grid"></div>
 
         <div class="final-screen" id="finalScreen">
-            <h2>✨ Твоя карта дня ✨</h2>
+            <h2>✨ Карты выбраны! ✨</h2>
             <div class="selected-cards-display" id="selectedCardsDisplay"></div>
             <p class="message">Отправляю результат тёте Зине...</p>
         </div>
@@ -398,6 +401,9 @@
     </div>
 
     <script>
+        const TOTAL_CARDS = 78;
+        const CARDS_TO_SHOW = 9;
+        const CARDS_TO_SELECT = 3;
         const SHUFFLE_DURATION = 2500;
 
         const CARD_IMAGES = [
@@ -425,26 +431,28 @@
             'pentacles_9.webp', 'pentacles_10.webp'
         ];
 
-        // ✅ ИСПРАВЛЕНО: Берём карты из URL
+        const ALL_CARDS = Array.from({length: TOTAL_CARDS}, (_, i) => i);
+
         let selectedGrid = [];
-        let selectedCard = null;
-        let selectedIndex = null;
+        let selectedCards = [];
+        let selectedIndices = [];
         let isLocked = false;
         let cardsInteractionEnabled = false;
         let dataSent = false;
 
-        function getCardsFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const cardsParam = params.get('cards');
-
-            if (cardsParam) {
-                selectedGrid = cardsParam.split(',').map(Number);
-                console.log('✅ Карты получены из URL:', selectedGrid);
-                return true;
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
+            return shuffled;
+        }
 
-            console.error('❌ Карты не переданы через URL!');
-            return false;
+        function selectRandomCards() {
+            const shuffled = shuffleArray(ALL_CARDS);
+            selectedGrid = shuffled.slice(0, CARDS_TO_SHOW);
+            console.log('✅ Выбранные карты для сетки:', selectedGrid);
         }
 
         function getCardImagePath(cardId) {
@@ -473,7 +481,7 @@
                 img.loading = 'lazy';
 
                 img.onerror = function() {
-                    console.error(`Не удалось загрузить карту: ${cardId}`);
+                    console.error(`❌ Не удалось загрузить карту: ${cardId}`);
                     this.style.display = 'none';
                     front.style.background = 'linear-gradient(135deg, #4a2c5e 0%, #2d1b4e 100%)';
                     front.textContent = '🔮';
@@ -494,6 +502,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     if (cardsInteractionEnabled) {
+                        console.log(`🎴 Клик на карту ${index + 1}`);
                         handleCardClick(container, index, cardId);
                     }
                 });
@@ -510,127 +519,58 @@
         }
 
         function handleCardClick(container, index, cardId) {
-            if (isLocked || !cardsInteractionEnabled) return;
-
-            if (selectedIndex !== null && selectedIndex !== index) {
-                const prevCard = document.querySelector(`[data-index="${selectedIndex}"]`);
-                if (prevCard) {
-                    prevCard.classList.remove('flipped', 'selected');
-                }
+            if (isLocked || !cardsInteractionEnabled) {
+                return;
             }
 
-            const alreadySelected = selectedIndex === index;
+            const alreadySelected = selectedIndices.includes(index);
 
             if (alreadySelected) {
                 container.classList.remove('flipped', 'selected');
-                selectedIndex = null;
-                selectedCard = null;
-            } else {
+                selectedIndices = selectedIndices.filter(i => i !== index);
+                selectedCards = selectedCards.filter(c => c !== cardId);
+            } else if (selectedCards.length < CARDS_TO_SELECT) {
                 container.classList.add('flipped');
                 setTimeout(() => {
                     container.classList.add('selected');
                 }, 300);
 
-                selectedIndex = index;
-                selectedCard = cardId;
-
-                isLocked = true;
-                cardsInteractionEnabled = false;
-
-                setTimeout(finishSelection, 800);
+                selectedIndices.push(index);
+                selectedCards.push(cardId);
             }
 
             updateMessage();
+
+            // 🔥 СРАЗУ ОТПРАВЛЯЕМ ПОСЛЕ 3-Й КАРТЫ!
+            if (selectedCards.length === CARDS_TO_SELECT) {
+                isLocked = true;
+                cardsInteractionEnabled = false;
+
+                document.getElementById('message').textContent = '✨ Готово! ✨';
+
+                // 🔥 ОТПРАВКА БЕЗ ЗАДЕРЖКИ!
+                const positions = selectedIndices.map(i => i + 1);
+                const data = JSON.stringify({ cards: positions });
+
+                console.log('📤 Отправка:', data);
+
+                window.Telegram.WebApp.sendData(data);
+            }
         }
 
         function updateMessage() {
             const message = document.getElementById('message');
+            const remaining = CARDS_TO_SELECT - selectedCards.length;
 
-            if (selectedCard === null) {
-                message.textContent = 'Слушай сердцем... Выбери свою карту';
+            if (remaining === CARDS_TO_SELECT) {
+                message.textContent = 'Слушай сердцем... Выбери 3 карты';
+            } else if (remaining > 0) {
+                message.textContent = `Выбрано: ${selectedCards.length} из ${CARDS_TO_SELECT}`;
             } else {
                 message.textContent = '';
             }
         }
 
-        function finishSelection() {
-            document.querySelectorAll('.card-container').forEach(card => {
-                if (parseInt(card.dataset.index) !== selectedIndex) {
-                    card.classList.add('locked');
-                }
-                card.classList.add('disabled');
-            });
-
-            document.getElementById('message').textContent = '✨ Готово! ✨';
-            document.getElementById('message').classList.add('success');
-
-            setTimeout(showFinalScreen, 1000);
-        }
-
-        function showFinalScreen() {
-            document.getElementById('grid').style.display = 'none';
-            document.getElementById('message').style.display = 'none';
-            document.getElementById('title').style.display = 'none';
-
-            const finalScreen = document.getElementById('finalScreen');
-            const display = document.getElementById('selectedCardsDisplay');
-
-            const miniCard = document.createElement('div');
-            miniCard.className = 'mini-card';
-
-            const img = document.createElement('img');
-            img.src = getCardImagePath(selectedCard);
-            img.alt = `Выбранная карта`;
-
-            miniCard.appendChild(img);
-            display.appendChild(miniCard);
-
-            finalScreen.classList.add('show');
-
-            setTimeout(sendToBot, 2000);
-        }
-
-        async function sendToBot() {
-            if (dataSent) {
-                console.log('⚠️ Данные уже отправлены');
-                return;
-            }
-            dataSent = true;
-
-            // ✅ ОТПРАВЛЯЕМ НАЗВАНИЕ КАРТЫ (БЕЗ .webp)
-            const cardName = CARD_IMAGES[selectedCard].replace('.webp', '');
-
-            const result = {
-                card: cardName
-            };
-
-            console.log('🎴 Отправка данных:', result);
-            console.log('📝 Card name:', cardName);
-
-            if (!window.Telegram || !window.Telegram.WebApp) {
-                console.error('❌ Telegram WebApp не доступен!');
-                alert('Выбрана карта: ' + cardName);
-                return;
-            }
-
-            try {
-                const tg = window.Telegram.WebApp;
-                const jsonData = JSON.stringify(result);
-
-                console.log('📤 Отправляю JSON:', jsonData);
-
-                tg.sendData(jsonData);
-
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                console.log('✅ Закрываю WebApp');
-                tg.close();
-
-            } catch (e) {
-                console.error('❌ Ошибка:', e);
-                alert('Ошибка: ' + e.message);
-            }
-        }
 
         function createSparkles() {
             for (let i = 0; i < 10; i++) {
@@ -652,18 +592,13 @@
             document.querySelectorAll('.card-container').forEach(card => {
                 card.classList.remove('disabled');
             });
-            console.log('✅ Карты активированы');
+            console.log('✅ Карты активированы для выбора');
         }
 
         function init() {
             console.log('🎴 Инициализация WebApp');
 
-            // ✅ КРИТИЧНО: Получаем карты из URL
-            if (!getCardsFromURL()) {
-                alert('❌ Ошибка: карты не переданы ботом!\n\nПопробуй перезапустить расклад.');
-                return;
-            }
-
+            selectRandomCards();
             createGrid();
 
             setTimeout(() => {
@@ -672,7 +607,7 @@
 
                 setTimeout(() => {
                     shuffleArea.style.display = 'none';
-                    document.getElementById('title').textContent = '🎴 Выбери свою карту дня 🎴';
+                    document.getElementById('title').textContent = '🎴 Выбери 3 карты 🎴';
 
                     const grid = document.getElementById('grid');
                     grid.classList.add('show');
@@ -702,6 +637,5 @@
             init();
         }
     </script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
